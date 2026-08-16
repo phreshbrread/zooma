@@ -22,3 +22,8 @@ target/
 # Nix
 result
 result/
+
+
+# Added by cargo
+
+/target
