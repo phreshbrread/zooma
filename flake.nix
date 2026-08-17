@@ -58,6 +58,9 @@
         libxcb
         libxau
         libxdmcp
+        libxinerama
+        libxcursor
+        libxi
         clang
         wayland
         libGL
