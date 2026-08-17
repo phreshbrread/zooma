@@ -1,0 +1,77 @@
+{
+  description        = "Zooma flake";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+  outputs = { self, nixpkgs }:
+  let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
+  in
+  {
+    # Nix package
+    packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
+      pname   = "imgview";
+      version = "0.1.0";
+      src     = ./.;
+      cargoLock.lockFile = ./Cargo.lock;
+
+      nativeBuildInputs = with pkgs; [
+        cargo
+        rustc
+        rustfmt
+        clippy
+        rust-analyzer
+        cmake
+        rustPlatform.bindgenHook
+        llvmPackages.libclang
+      ];
+
+      buildInputs = with pkgs; [
+        raylib
+        cmake
+        libx11
+        libxcb
+        libxau
+        libxdmcp
+        clang
+        wayland
+        libGL
+        glfw
+      ];
+    };
+
+    # Dev shell
+    devShells.${system}.default = pkgs.mkShell {
+      inputsFrom = [ self.packages.${system}.default ];
+      buildInputs = with pkgs; [
+        cargo
+        rustc
+        rustfmt
+        clippy
+        rust-analyzer
+        cmake
+        rustPlatform.bindgenHook
+        llvmPackages.libclang
+        raylib
+        cmake
+        libx11
+        libxcb
+        libxau
+        libxdmcp
+        clang
+        wayland
+        libGL
+        glfw
+      ];
+
+      BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";
+
+      RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
+
+      shellHook = ''
+        export LD_LIBRARY_PATH=${pkgs.libGL}/lib:${pkgs.libx11}/lib:${pkgs.libxrandr}/lib:${pkgs.libxinerama}/lib:${pkgs.libxcursor}/lib:${pkgs.libxi}/lib:$LD_LIBRARY_PATH
+      '';
+    };
+  };
+}
+

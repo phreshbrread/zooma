@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 raylib = "6.0.0"
+sc-cap = "0.2.0"
+scap = "0.0.8"
