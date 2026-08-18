@@ -1,5 +1,5 @@
 # zooma
-A very basic clone of Boomer, for X11 and Wayland.
+A pretty basic clone of [boomer](https://github.com/tsoding/boomer) for X11 and Wayland.
 
 ### Dependencies
 - ``raylib``
