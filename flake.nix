@@ -10,7 +10,7 @@
   {
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
-      pname   = "imgview";
+      pname   = "zooma";
       version = "0.1.0";
       src     = ./.;
       cargoLock.lockFile = ./Cargo.lock;
@@ -33,10 +33,15 @@
         libxcb
         libxau
         libxdmcp
+        libxinerama
+        libxcursor
+        libxi
         clang
         wayland
         libGL
         glfw
+        scrot
+        grim
       ];
     };
 
