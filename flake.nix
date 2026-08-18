@@ -65,6 +65,8 @@
         wayland
         libGL
         glfw
+        scrot
+        grim
       ];
 
       BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";
