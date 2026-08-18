@@ -1,15 +1,12 @@
 use raylib::prelude::*;
-use std::env;
-use std::process::Command;
 
-mod lib;
-use lib::*;
-
-const TMP_SS_PATH: &str = "/tmp/zooma.png";
+// Local crate library
+mod library;
+use library::*;
 
 // TODO:
 // - Image panning
-// - Flashlight effect
+// - Circle effect
 // - Screenshot on Windows
 
 fn main() {
@@ -36,8 +33,6 @@ fn main() {
         let mut win = rl.begin_drawing(&rl_thread);
         win.clear_background(Color::BLACK);
         win.set_mouse_cursor(MouseCursor::MOUSE_CURSOR_DEFAULT);
-
-        //(render_size.x, render_size.x) = get_render_size(&win);
 
         // --- Panning -------------------------------------------------
         if win.is_mouse_button_down(MouseButton::MOUSE_BUTTON_LEFT) {
@@ -74,43 +69,4 @@ fn main() {
             image_position.y,
             Color::RAYWHITE);
     }
-}
-
-fn determine_environment() -> Environment {
-    let e = env::var("XDG_SESSION_TYPE").expect("Failed to read $XDG_SESSION_TYPE");
-
-    match e.as_str() {
-        "x11" => return Environment::X11,
-        "wayland" => return Environment::Wayland,
-        _ => todo!(),
-    }
-}
-
-fn take_screenshot(e: Environment) {
-    match e {
-        Environment::X11 => {
-            Command::new("scrot")
-                .arg("-Z")
-                .arg("0")
-                .arg(TMP_SS_PATH)
-                .arg("-o")
-                .output()
-                .expect("Failed to capture screen");
-        }
-        Environment::Wayland => {
-            Command::new("grim")
-                .arg("-l")
-                .arg("0")
-                .arg(TMP_SS_PATH)
-                .output()
-                .expect("Failed to capture screen");
-        }
-        Environment::Windows => {
-            todo!("Windows");
-        }
-    }
-}
-
-fn get_render_size(rdh: &RaylibDrawHandle) -> (i32, i32) {
-    return (rdh.get_render_width(), rdh.get_render_height());
 }
