@@ -5,3 +5,4 @@ A pretty basic clone of [boomer](https://github.com/tsoding/boomer) for X11 and 
 - ``raylib``
 - ``scrot`` (for X11)
 - ``grim`` (for Wayland)
+- ``spectacle`` (for KDE)
