@@ -1,8 +1,10 @@
-use raylib::prelude::*;
-
-// Local crate library
+mod zooma_error;
 mod library;
+
+use std::io::ErrorKind;
+use raylib::prelude::*;
 use library::*;
+use zooma_error::ZoomaError;
 
 // TODO:
 // - Image panning
@@ -10,7 +12,17 @@ use library::*;
 // - Screenshot on Windows
 
 fn main() {
-    take_screenshot(determine_environment());
+    match take_screenshot() {
+        Ok(_) => (), // Success
+        Err(e) => match e {
+            ZoomaError::NoWlroots => todo!("Handle non-wlroots Wayland"),
+            ZoomaError::NoXdgSessionType => {
+                println!("Failed to read $XDG_SESSION_TYPE environment variable");
+                std::process::exit(1);
+            },
+            ZoomaError::MissingDependency(s) => todo!("Missing dependency: {}", s),
+        }
+    }
 
     // Initialize Raylib
     let (mut rl, rl_thread) = raylib::init()

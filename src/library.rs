@@ -1,5 +1,8 @@
 use std::env;
+use std::error::Error;
 use std::process::Command;
+
+use crate::zooma_error::ZoomaError;
 
 pub const TMP_SS_PATH: &str = "/tmp/zooma.png";
 
@@ -8,10 +11,9 @@ pub struct I32Vector {
     pub y: i32,
 }
 
-pub enum Environment {
+pub enum DisplayProtocol {
     X11,
     Wayland,
-    Windows,
 }
 
 impl I32Vector {
@@ -20,38 +22,44 @@ impl I32Vector {
     }
 }
 
-pub fn determine_environment() -> Environment {
-    let e = env::var("XDG_SESSION_TYPE").expect("Failed to read $XDG_SESSION_TYPE");
+pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
+    let e = match env::var("XDG_SESSION_TYPE") {
+        Ok(o) => o,
+        Err(_) => return Err(ZoomaError::NoXdgSessionType),
+    };
 
     match e.as_str() {
-        "x11" => return Environment::X11,
-        "wayland" => return Environment::Wayland,
-        _ => todo!(),
+        "x11" => return Ok(DisplayProtocol::X11),
+        "wayland" => return Ok(DisplayProtocol::Wayland),
+        _ => todo!("Handle non-x11 or wayland values"),
     }
 }
 
-pub fn take_screenshot(e: Environment) {
-    match e {
-        Environment::X11 => {
+pub fn take_screenshot() -> Result<(), ZoomaError> {
+    let e = get_current_environment()?;
+
+    match e { // Returns nothing on success, but the error on failure
+        DisplayProtocol::X11 => {
             Command::new("scrot")
                 .args(["-Z", "0", TMP_SS_PATH, "-o"])
-                .output()
-                .expect("Failed to execute scrot");
+                .output();
+
+            // TODO: On fail
+            return Err(ZoomaError::MissingDependency(String::from("scrot")));
+
+            return Ok(());
         }
-        // TODO: Change screenshot method since this only works on wlroots
-        Environment::Wayland => {
+
+        DisplayProtocol::Wayland => {
             let grim = Command::new("grim")
                 .args(["-l", "0", TMP_SS_PATH])
-                .output()
-                .expect("Failed to execute grim");
+                .output().unwrap();
 
             if !grim.status.success() {
-                println!("grim: {}", String::from_utf8_lossy(&grim.stderr));
-                todo!("Handle grim failure")
+                return Err(ZoomaError::NoWlroots);
             }
-        }
-        Environment::Windows => {
-            todo!("Windows");
+
+            return Ok(());
         }
     }
 }
