@@ -1,9 +1,9 @@
-mod zooma_error;
 mod library;
+mod zooma_error;
 
-use std::io::ErrorKind;
-use raylib::prelude::*;
 use library::*;
+use raylib::prelude::*;
+use std::process;
 use zooma_error::ZoomaError;
 
 // TODO:
@@ -16,12 +16,19 @@ fn main() {
         Ok(_) => (), // Success
         Err(e) => match e {
             ZoomaError::NoWlroots => todo!("Handle non-wlroots Wayland"),
-            ZoomaError::NoXdgSessionType => {
+            ZoomaError::MissingXdgSessionType => {
                 println!("Failed to read $XDG_SESSION_TYPE environment variable");
-                std::process::exit(1);
+                process::exit(1);
             },
-            ZoomaError::MissingDependency(s) => todo!("Missing dependency: {}", s),
-        }
+            ZoomaError::InvalidXdgSessionType(session_value) => {
+                println!("Invalid $XDG_SESSION_TYPE, expected either value \"x11\" or \"wayland\", got \"{:}\"", session_value);
+                process::exit(1);
+            },
+            ZoomaError::MissingDependency(dep) => {
+                println!("Missing dependency: \'{:}\'", dep);
+                process::exit(1);
+            },
+        },
     }
 
     // Initialize Raylib
@@ -39,7 +46,7 @@ fn main() {
 
     //let mut render_size    = I32Vector::new(0, 0);
     let mut image_position = I32Vector::new(0, 0);
-    let mut drag_offset    = I32Vector::new(0, 0);
+    let mut drag_offset = I32Vector::new(0, 0);
 
     while !rl.window_should_close() {
         let mut win = rl.begin_drawing(&rl_thread);
@@ -61,11 +68,11 @@ fn main() {
         // TODO: Centered zoom: offset image position so zoom occurs at cursor position
 
         let wheel_move = win.get_mouse_wheel_move();
-        if wheel_move > 0.0 || win.is_key_down(KeyboardKey::KEY_EQUAL){
-            ss_texture.width  += (ss_texture.width  as f32 * 0.05) as i32;
+        if wheel_move > 0.0 || win.is_key_down(KeyboardKey::KEY_EQUAL) {
+            ss_texture.width += (ss_texture.width as f32 * 0.05) as i32;
             ss_texture.height += (ss_texture.height as f32 * 0.05) as i32;
         } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
-            ss_texture.width  -= (ss_texture.width  as f32 * 0.05) as i32;
+            ss_texture.width -= (ss_texture.width as f32 * 0.05) as i32;
             ss_texture.height -= (ss_texture.height as f32 * 0.05) as i32;
         }
         // -------------------------------------------------------------
@@ -79,6 +86,7 @@ fn main() {
             &ss_texture,
             image_position.x,
             image_position.y,
-            Color::RAYWHITE);
+            Color::RAYWHITE,
+        );
     }
 }

@@ -1,5 +1,5 @@
 use std::env;
-use std::error::Error;
+use std::io::ErrorKind;
 use std::process::Command;
 
 use crate::zooma_error::ZoomaError;
@@ -25,41 +25,59 @@ impl I32Vector {
 pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
     let e = match env::var("XDG_SESSION_TYPE") {
         Ok(o) => o,
-        Err(_) => return Err(ZoomaError::NoXdgSessionType),
+        Err(_) => return Err(ZoomaError::MissingXdgSessionType),
     };
 
     match e.as_str() {
         "x11" => return Ok(DisplayProtocol::X11),
         "wayland" => return Ok(DisplayProtocol::Wayland),
-        _ => todo!("Handle non-x11 or wayland values"),
+        _ => return Err(ZoomaError::InvalidXdgSessionType(e.into())),
     }
 }
 
 pub fn take_screenshot() -> Result<(), ZoomaError> {
     let e = get_current_environment()?;
 
-    match e { // Returns nothing on success, but the error on failure
+    match e {
+        // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
-            Command::new("scrot")
+            let cmd = Command::new("scrot")
                 .args(["-Z", "0", TMP_SS_PATH, "-o"])
                 .output();
 
-            // TODO: On fail
-            return Err(ZoomaError::MissingDependency(String::from("scrot")));
-
-            return Ok(());
+            match cmd {
+                Err(e) => match e.kind() {
+                    ErrorKind::NotFound => {
+                        return Err(ZoomaError::MissingDependency("scrot".into()));
+                    }
+                    _ => todo!("Unhandled scrot error: {:#?}", e.kind()),
+                },
+                Ok(_) => return Ok(()),
+            }
         }
+        // ------------------------------------------------------------
 
+        // --- Wayland ------------------------------------------------
         DisplayProtocol::Wayland => {
-            let grim = Command::new("grim")
-                .args(["-l", "0", TMP_SS_PATH])
-                .output().unwrap();
+            let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
 
-            if !grim.status.success() {
+
+            match cmd {
+                Err(e) => match e.kind() {
+                    ErrorKind::NotFound => {
+                        return Err(ZoomaError::MissingDependency("grim".into()));
+                    }
+                    _ => todo!("Unhandled grim error: {:#?}", e.kind()),
+                },
+                Ok(_) => (),
+            }
+
+            // Safe to unwrap here because this only executes if cmd succeeded
+            if !cmd.unwrap().status.success() {
                 return Err(ZoomaError::NoWlroots);
             }
 
             return Ok(());
-        }
+        } // ------------------------------------------------------------
     }
 }
