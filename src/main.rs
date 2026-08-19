@@ -1,33 +1,38 @@
 mod library;
 mod zooma_error;
-
 use library::*;
-use raylib::prelude::*;
-use std::process;
 use zooma_error::ZoomaError;
 
+use std::process;
+use raylib::prelude::*;
+
 // TODO:
-// - Image panning
-// - Circle effect
-// - Screenshot on Windows
+// - Spotlight effect
+// - Centered zoom: offset image position so zoom occurs at cursor position
+// - Set reasonable position and zoom clamps
 
 fn main() {
     match take_screenshot() {
         Ok(_) => (), // Success
         Err(e) => match e {
-            ZoomaError::NoWlroots => todo!("Handle non-wlroots Wayland"),
+            ZoomaError::NoWlroots => {
+                println!("Non-wlroots Wayland sessions are currently unsupported");
+                todo!("Fix this");
+                process::exit(1);
+            },
             ZoomaError::MissingXdgSessionType => {
                 println!("Failed to read $XDG_SESSION_TYPE environment variable");
                 process::exit(1);
-            },
+            }
             ZoomaError::InvalidXdgSessionType(session_value) => {
                 println!("Invalid $XDG_SESSION_TYPE, expected either value \"x11\" or \"wayland\", got \"{:}\"", session_value);
                 process::exit(1);
-            },
+            }
             ZoomaError::MissingDependency(dep) => {
                 println!("Missing dependency: \'{:}\'", dep);
                 process::exit(1);
             },
+            _ => todo!(),
         },
     }
 
@@ -44,7 +49,6 @@ fn main() {
         .load_texture_from_image(&rl_thread, &img)
         .expect("Failed to create texture");
 
-    //let mut render_size    = I32Vector::new(0, 0);
     let mut image_position = I32Vector::new(0, 0);
     let mut drag_offset = I32Vector::new(0, 0);
 
@@ -64,17 +68,22 @@ fn main() {
         // -------------------------------------------------------------
 
         // --- Zooming -------------------------------------------------
-        // TODO: Set limit on size to prevent overflow crash
-        // TODO: Centered zoom: offset image position so zoom occurs at cursor position
-
         let wheel_move = win.get_mouse_wheel_move();
         if wheel_move > 0.0 || win.is_key_down(KeyboardKey::KEY_EQUAL) {
-            ss_texture.width += (ss_texture.width as f32 * 0.05) as i32;
-            ss_texture.height += (ss_texture.height as f32 * 0.05) as i32;
-        } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
-            ss_texture.width -= (ss_texture.width as f32 * 0.05) as i32;
-            ss_texture.height -= (ss_texture.height as f32 * 0.05) as i32;
-        }
+            ss_texture.width = ss_texture
+                .width
+                .saturating_add((ss_texture.width as f32 * 0.05) as i32);
+            ss_texture.height = ss_texture
+                .height
+                .saturating_add((ss_texture.height as f32 * 0.05) as i32);
+            } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
+                ss_texture.width = ss_texture
+                    .width
+                    .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
+                ss_texture.height = ss_texture
+                    .height
+                    .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
+            }
         // -------------------------------------------------------------
 
         // Set image display position
@@ -88,5 +97,9 @@ fn main() {
             image_position.y,
             Color::RAYWHITE,
         );
+
+        if win.is_key_down(KeyboardKey::KEY_LEFT_CONTROL) {
+            todo!("Flashlight effect");
+        }
     }
 }

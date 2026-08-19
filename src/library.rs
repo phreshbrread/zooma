@@ -50,7 +50,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                     ErrorKind::NotFound => {
                         return Err(ZoomaError::MissingDependency("scrot".into()));
                     }
-                    _ => todo!("Unhandled scrot error: {:#?}", e.kind()),
+                    _ => panic!("Unhandled scrot error: {:#?}", e.kind()),
                 },
                 Ok(_) => return Ok(()),
             }
@@ -58,23 +58,37 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
         // ------------------------------------------------------------
 
         // --- Wayland ------------------------------------------------
+        // TODO: Remove duplicate code
         DisplayProtocol::Wayland => {
-            let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
+            if env::var("XDG_CURRENT_DESKTOP").unwrap() == "KDE" {
+                let cmd = Command::new("spectacle").args(["-b", "-n", "-o", TMP_SS_PATH]).output();
 
+                match cmd {
+                    Err(e) => match e.kind() {
+                        ErrorKind::NotFound => {
+                            return Err(ZoomaError::MissingDependency("spectacle".into()));
+                        }
+                        _ => panic!("Unhandled spectacle error: {:#?}", e.kind()),
+                    },
+                    Ok(_) => (),
+                }
+            } else {
+                let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
 
-            match cmd {
-                Err(e) => match e.kind() {
-                    ErrorKind::NotFound => {
-                        return Err(ZoomaError::MissingDependency("grim".into()));
-                    }
-                    _ => todo!("Unhandled grim error: {:#?}", e.kind()),
-                },
-                Ok(_) => (),
-            }
+                match cmd {
+                    Err(e) => match e.kind() {
+                        ErrorKind::NotFound => {
+                            return Err(ZoomaError::MissingDependency("grim".into()));
+                        }
+                        _ => panic!("Unhandled grim error: {:#?}", e.kind()),
+                    },
+                    Ok(_) => (),
+                }
 
-            // Safe to unwrap here because this only executes if cmd succeeded
-            if !cmd.unwrap().status.success() {
-                return Err(ZoomaError::NoWlroots);
+                // Safe to unwrap here because this only executes if cmd succeeded
+                if !cmd.unwrap().status.success() {
+                    return Err(ZoomaError::NoWlroots);
+                }
             }
 
             return Ok(());
