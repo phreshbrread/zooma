@@ -1,43 +1,13 @@
 mod library;
 mod zooma_error;
 use library::*;
-use zooma_error::ZoomaError;
 
 use raylib::prelude::*;
-use std::process;
 
 fn main() {
     match take_screenshot() {
-        Ok(_) => (), // Success
-        Err(e) => match e {
-            ZoomaError::MissingXdgSessionType => {
-                println!("Failed to read $XDG_SESSION_TYPE environment variable");
-                process::exit(1);
-            }
-            ZoomaError::InvalidXdgSessionType(session_value) => {
-                println!(
-                    "Invalid $XDG_SESSION_TYPE, expected \
-                    \"x11\" or \"wayland\", got \"{:}\"",
-                    session_value
-                );
-                process::exit(1);
-            }
-            ZoomaError::MissingDependency(dep) => {
-                println!("Missing dependency: \'{:}\'", dep);
-                process::exit(1);
-            }
-            ZoomaError::UnsupportedEnvironment => {
-                println!("Unsupported environment");
-                process::exit(1);
-            }
-            ZoomaError::MissingXdgCurrentDesktop => {
-                println!(
-                    "Failed to read $XDG_CURRENT_DESKTOP, please \
-                    make sure it is set correctly"
-                );
-                process::exit(1);
-            }
-        },
+        Ok(()) => (), // Success
+        Err(e) => handle_zooma_error(e),
     }
 
     // Initialize Raylib
@@ -77,7 +47,8 @@ fn main() {
         // TODO: Zoom image to cursor location
         let wheel_move = win.get_mouse_wheel_move();
         if wheel_move > 0.0 || win.is_key_down(KeyboardKey::KEY_EQUAL) {
-            if ss_texture.width < original_size.x * 20 { // 20x inward limit
+            // 20x inward limit
+            if ss_texture.width < original_size.x * 20 {
                 ss_texture.width = ss_texture
                     .width
                     .saturating_add((ss_texture.width as f32 * 0.05) as i32);
@@ -86,7 +57,8 @@ fn main() {
                     .saturating_add((ss_texture.height as f32 * 0.05) as i32);
             }
         } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
-            if ss_texture.height > original_size.y / 2 { // 2x outward limit
+            // 2x outward limit
+            if ss_texture.height > original_size.y / 2 {
                 ss_texture.width = ss_texture
                     .width
                     .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
