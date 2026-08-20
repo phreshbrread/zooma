@@ -56,7 +56,7 @@ fn main() {
 
     let mut image_position = I32Vector::new(0, 0);
     let mut drag_offset = I32Vector::new(0, 0);
-    let mut original_size = I32Vector::new(ss_texture.width, ss_texture.height);
+    let original_size = I32Vector::new(ss_texture.width, ss_texture.height);
 
     while !rl.window_should_close() {
         let mut win = rl.begin_drawing(&rl_thread);
