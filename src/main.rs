@@ -6,11 +6,6 @@ use zooma_error::ZoomaError;
 use raylib::prelude::*;
 use std::process;
 
-// TODO:
-// - Spotlight effect
-// - Centered zoom: offset image position so zoom occurs at cursor position
-// - Set reasonable position and zoom clamps
-
 fn main() {
     match take_screenshot() {
         Ok(_) => (), // Success
@@ -20,8 +15,11 @@ fn main() {
                 process::exit(1);
             }
             ZoomaError::InvalidXdgSessionType(session_value) => {
-                println!("Invalid $XDG_SESSION_TYPE, expected \
-                    \"x11\" or \"wayland\", got \"{:}\"", session_value);
+                println!(
+                    "Invalid $XDG_SESSION_TYPE, expected \
+                    \"x11\" or \"wayland\", got \"{:}\"",
+                    session_value
+                );
                 process::exit(1);
             }
             ZoomaError::MissingDependency(dep) => {
@@ -31,12 +29,14 @@ fn main() {
             ZoomaError::UnsupportedEnvironment => {
                 println!("Unsupported environment");
                 process::exit(1);
-            },
+            }
             ZoomaError::MissingXdgCurrentDesktop => {
-                println!("Failed to read $XDG_CURRENT_DESKTOP, please \
-                    make sure it is set correctly");
+                println!(
+                    "Failed to read $XDG_CURRENT_DESKTOP, please \
+                    make sure it is set correctly"
+                );
                 process::exit(1);
-            },
+            }
         },
     }
 
@@ -45,6 +45,7 @@ fn main() {
         .title("Zooma")
         .resizable()
         .fullscreen()
+        .vsync()
         .build();
     rl.set_target_fps(60);
 
@@ -55,6 +56,7 @@ fn main() {
 
     let mut image_position = I32Vector::new(0, 0);
     let mut drag_offset = I32Vector::new(0, 0);
+    let mut original_size = I32Vector::new(ss_texture.width, ss_texture.height);
 
     while !rl.window_should_close() {
         let mut win = rl.begin_drawing(&rl_thread);
@@ -72,27 +74,35 @@ fn main() {
         // -------------------------------------------------------------
 
         // --- Zooming -------------------------------------------------
+        // TODO: Zoom image to cursor location
         let wheel_move = win.get_mouse_wheel_move();
         if wheel_move > 0.0 || win.is_key_down(KeyboardKey::KEY_EQUAL) {
-            ss_texture.width = ss_texture
-                .width
-                .saturating_add((ss_texture.width as f32 * 0.05) as i32);
-            ss_texture.height = ss_texture
-                .height
-                .saturating_add((ss_texture.height as f32 * 0.05) as i32);
+            if ss_texture.width < original_size.x * 20 { // 20x inward limit
+                ss_texture.width = ss_texture
+                    .width
+                    .saturating_add((ss_texture.width as f32 * 0.05) as i32);
+                ss_texture.height = ss_texture
+                    .height
+                    .saturating_add((ss_texture.height as f32 * 0.05) as i32);
+            }
         } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
-            ss_texture.width = ss_texture
-                .width
-                .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
-            ss_texture.height = ss_texture
-                .height
-                .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
+            if ss_texture.height > original_size.y / 2 { // 2x outward limit
+                ss_texture.width = ss_texture
+                    .width
+                    .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
+                ss_texture.height = ss_texture
+                    .height
+                    .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
+            }
         }
         // -------------------------------------------------------------
 
         // Set image display position
+        // TODO: Set reasonable position clamps
         image_position.x = 0 + drag_offset.x;
         image_position.y = 0 + drag_offset.y;
+
+        // TODO: Spotlight effect
 
         // Show image on screen
         win.draw_texture(
