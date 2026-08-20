@@ -72,7 +72,7 @@
         glfw
         scrot
         grim
-        kdePackages.spectacle
+        #kdePackages.spectacle
       ];
 
       BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";

@@ -4,8 +4,8 @@ use std::error::Error;
 #[derive(Debug)]
 pub enum ZoomaError {
     UnsupportedEnvironment,
-    NoWlroots,
     MissingXdgSessionType,
+    MissingXdgCurrentDesktop,
     InvalidXdgSessionType(Box<str>),
     MissingDependency(Box<str>),
 }

@@ -3,8 +3,8 @@ mod zooma_error;
 use library::*;
 use zooma_error::ZoomaError;
 
-use std::process;
 use raylib::prelude::*;
+use std::process;
 
 // TODO:
 // - Spotlight effect
@@ -15,24 +15,28 @@ fn main() {
     match take_screenshot() {
         Ok(_) => (), // Success
         Err(e) => match e {
-            ZoomaError::NoWlroots => {
-                println!("Non-wlroots Wayland sessions are currently unsupported");
-                todo!("Fix this");
-                process::exit(1);
-            },
             ZoomaError::MissingXdgSessionType => {
                 println!("Failed to read $XDG_SESSION_TYPE environment variable");
                 process::exit(1);
             }
             ZoomaError::InvalidXdgSessionType(session_value) => {
-                println!("Invalid $XDG_SESSION_TYPE, expected either value \"x11\" or \"wayland\", got \"{:}\"", session_value);
+                println!("Invalid $XDG_SESSION_TYPE, expected \
+                    \"x11\" or \"wayland\", got \"{:}\"", session_value);
                 process::exit(1);
             }
             ZoomaError::MissingDependency(dep) => {
                 println!("Missing dependency: \'{:}\'", dep);
                 process::exit(1);
+            }
+            ZoomaError::UnsupportedEnvironment => {
+                println!("Unsupported environment");
+                process::exit(1);
             },
-            _ => todo!(),
+            ZoomaError::MissingXdgCurrentDesktop => {
+                println!("Failed to read $XDG_CURRENT_DESKTOP, please \
+                    make sure it is set correctly");
+                process::exit(1);
+            },
         },
     }
 
@@ -76,14 +80,14 @@ fn main() {
             ss_texture.height = ss_texture
                 .height
                 .saturating_add((ss_texture.height as f32 * 0.05) as i32);
-            } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
-                ss_texture.width = ss_texture
-                    .width
-                    .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
-                ss_texture.height = ss_texture
-                    .height
-                    .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
-            }
+        } else if wheel_move < 0.0 || win.is_key_down(KeyboardKey::KEY_MINUS) {
+            ss_texture.width = ss_texture
+                .width
+                .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
+            ss_texture.height = ss_texture
+                .height
+                .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
+        }
         // -------------------------------------------------------------
 
         // Set image display position

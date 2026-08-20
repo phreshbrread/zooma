@@ -60,8 +60,15 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
         // --- Wayland ------------------------------------------------
         // TODO: Remove duplicate code
         DisplayProtocol::Wayland => {
-            if env::var("XDG_CURRENT_DESKTOP").unwrap() == "KDE" {
-                let cmd = Command::new("spectacle").args(["-b", "-n", "-o", TMP_SS_PATH]).output();
+            let current_desktop = match env::var("XDG_CURRENT_DESKTOP") {
+                Ok(o) => o,
+                Err(_) => return Err(ZoomaError::MissingXdgCurrentDesktop),
+            };
+
+            if current_desktop == "KDE" {
+                let cmd = Command::new("spectacle")
+                    .args(["-b", "-n", "-o", TMP_SS_PATH])
+                    .output();
 
                 match cmd {
                     Err(e) => match e.kind() {
@@ -72,23 +79,23 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                     },
                     Ok(_) => (),
                 }
-            } else {
-                let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
+            }
 
-                match cmd {
-                    Err(e) => match e.kind() {
-                        ErrorKind::NotFound => {
-                            return Err(ZoomaError::MissingDependency("grim".into()));
-                        }
-                        _ => panic!("Unhandled grim error: {:#?}", e.kind()),
-                    },
-                    Ok(_) => (),
-                }
+            let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
 
-                // Safe to unwrap here because this only executes if cmd succeeded
-                if !cmd.unwrap().status.success() {
-                    return Err(ZoomaError::NoWlroots);
-                }
+            match cmd {
+                Err(e) => match e.kind() {
+                    ErrorKind::NotFound => {
+                        return Err(ZoomaError::MissingDependency("grim".into()));
+                    }
+                    _ => panic!("Unhandled grim error: {:#?}", e.kind()),
+                },
+                Ok(_) => (),
+            }
+
+            // Safe to unwrap here because this only executes if cmd succeeded
+            if !cmd.unwrap().status.success() {
+                return Err(ZoomaError::UnsupportedEnvironment);
             }
 
             return Ok(());
