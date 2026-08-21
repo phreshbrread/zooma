@@ -24,6 +24,8 @@
         cmake
         rustPlatform.bindgenHook
         llvmPackages.libclang
+        scrot
+        grim
       ];
 
       buildInputs = with pkgs; [
@@ -72,7 +74,6 @@
         glfw
         scrot
         grim
-        #kdePackages.spectacle
       ];
 
       BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";
