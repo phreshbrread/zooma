@@ -3,7 +3,7 @@ mod zooma_error;
 use library::*;
 
 use raylib::prelude::*;
-use std::fs::remove_file;
+use std::{fs::remove_file, process};
 
 fn main() {
     set_temp_ss_path();
@@ -23,13 +23,27 @@ fn main() {
     rl.set_target_fps(60);
 
     // Load texture from temporary screenshot
-    // TODO: Show formatted errors instead of panicking with .expect()
-    let img = Image::load_image(&TMP_SS_PATH.get().unwrap().to_string_lossy())
-        .expect("Failed to load temporary screenshot");
-    let mut ss_texture = rl
-        .load_texture_from_image(&rl_thread, &img)
-        .expect("Failed to create texture");
-    remove_file(&TMP_SS_PATH.get().unwrap()).expect("Failed to delete temporary screenshot");
+    let img = match Image::load_image(&TMP_SS_PATH.get().unwrap().to_string_lossy()) {
+        Ok(o) => o,
+        Err(e) => {
+            println!("Failed to load temporary screenshot: {:?}", e);
+            process::exit(1);
+        }
+    };
+    let mut ss_texture = match rl.load_texture_from_image(&rl_thread, &img) {
+        Ok(o) => o,
+        Err(e) => {
+            println!("Failed to create texture: {:?}", e);
+            process::exit(1);
+        }
+    };
+    match remove_file(&TMP_SS_PATH.get().unwrap()) {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Failed to remove temporary screenshot file {:?}", e);
+            process::exit(1);
+        }
+    }
 
     // Set positions & offsets for temp screenshot
     let mut img_origin = I32Vector::new(0, 0);
@@ -116,12 +130,7 @@ fn main() {
         }
 
         // Show image on screen
-        win.draw_texture(
-            &ss_texture,
-            img_origin.x,
-            img_origin.y,
-            Color::RAYWHITE,
-        );
+        win.draw_texture(&ss_texture, img_origin.x, img_origin.y, Color::RAYWHITE);
 
         // Spotlight effect
         if ctrl_key_down {
