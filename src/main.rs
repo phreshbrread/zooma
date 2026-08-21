@@ -60,6 +60,7 @@ fn main() {
 
         // Avoid calling is_key_down multiple times
         let ctrl_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL);
+        let shift_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT);
 
         let mut win = rl.begin_drawing(&rl_thread);
         win.clear_background(Color::BLACK);
@@ -78,7 +79,7 @@ fn main() {
         // --- Zooming -------------------------------------------------
         // TODO: Zoom image to cursor location
         let wheel_move = win.get_mouse_wheel_move();
-        if wheel_move > 0.0 && !ctrl_key_down {
+        if wheel_move > 0.0 && !shift_key_down {
             // 20x inward limit
             if ss_texture.width < original_size.x * 20 {
                 ss_texture.width = ss_texture
@@ -88,8 +89,7 @@ fn main() {
                     .height
                     .saturating_add((ss_texture.height as f32 * 0.05) as i32);
             }
-
-        } else if wheel_move < 0.0 && !ctrl_key_down {
+        } else if wheel_move < 0.0 && !shift_key_down {
             // 2x outward limit
             if ss_texture.height > original_size.y / 2 {
                 ss_texture.width = ss_texture
@@ -143,7 +143,9 @@ fn main() {
                 0.0,
                 Color::WHITE.alpha(0.7),
             );
+        }
 
+        if win.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) {
             // TODO: Set clamps
             if win.get_mouse_wheel_move() > 0.0 {
                 circle_size -= 10.0;
