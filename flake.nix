@@ -11,7 +11,7 @@
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
       pname   = "zooma";
-      version = "0.1.0";
+      version = "1.0.0";
       src     = ./.;
       cargoLock.lockFile = ./Cargo.lock;
 
@@ -24,8 +24,7 @@
         cmake
         rustPlatform.bindgenHook
         llvmPackages.libclang
-        scrot
-        grim
+        makeWrapper
       ];
 
       buildInputs = with pkgs; [
@@ -45,6 +44,12 @@
         scrot
         grim
       ];
+
+      postFixup = ''
+        wrapProgram $out/bin/zooma \
+        --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.grim pkgs.scrot ]} \
+        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.libGL pkgs.glfw pkgs.raylib pkgs.libX11 pkgs.libXcursor pkgs.libXi pkgs.libXinerama pkgs.libxkbcommon ]}
+      '';
     };
 
     # Dev shell
