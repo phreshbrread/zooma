@@ -12,3 +12,7 @@ A pretty basic clone of [boomer](https://github.com/tsoding/boomer) for X11 and 
 - ``libXi``
 - ``libXinerama``
 - ``libxkbcommon``
+
+
+
+(This readme is still under construction if you couldn't tell)
