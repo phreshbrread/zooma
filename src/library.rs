@@ -78,7 +78,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                         }
                         _ => panic!("Unhandled spectacle error: {:#?}", e.kind()),
                     },
-                    Ok(_) => (),
+                    Ok(_) => return Ok(()),
                 }
             }
 
