@@ -26,6 +26,7 @@ fn main() {
     rl.set_target_fps(60);
 
     // Load texture from temporary screenshot
+    // TODO: Show formatted errors instead of panicking with .expect()
     let img = Image::load_image(&TMP_SS_PATH.get().unwrap().to_string_lossy())
         .expect("Failed to load temporary screenshot");
     let mut ss_texture = rl
