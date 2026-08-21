@@ -1,12 +1,9 @@
 mod library;
 mod zooma_error;
-
 use library::*;
 
 use raylib::prelude::*;
-
-// General TODO:
-// - Delete temp screenshot once loaded
+use std::fs::remove_file;
 
 fn main() {
     set_temp_ss_path();
@@ -32,9 +29,10 @@ fn main() {
     let mut ss_texture = rl
         .load_texture_from_image(&rl_thread, &img)
         .expect("Failed to create texture");
+    remove_file(&TMP_SS_PATH.get().unwrap()).expect("Failed to delete temporary screenshot");
 
     // Set positions & offsets for temp screenshot
-    let mut image_position = I32Vector::new(0, 0);
+    let mut img_origin = I32Vector::new(0, 0);
     let mut drag_offset = I32Vector::new(0, 0);
     let original_size = I32Vector::new(ss_texture.width, ss_texture.height);
 
@@ -90,6 +88,7 @@ fn main() {
                     .height
                     .saturating_add((ss_texture.height as f32 * 0.05) as i32);
             }
+
         } else if wheel_move < 0.0 && !ctrl_key_down {
             // 2x outward limit
             if ss_texture.height > original_size.y / 2 {
@@ -105,22 +104,22 @@ fn main() {
 
         // Set image display position
         // TODO: Set reasonable position clamps
-        image_position.x = 0 + drag_offset.x;
-        image_position.y = 0 + drag_offset.y;
+        img_origin.x = 0 + drag_offset.x;
+        img_origin.y = 0 + drag_offset.y;
 
         // Reset image if R is pressed
         if win.is_key_released(KeyboardKey::KEY_R) {
             ss_texture.width = original_size.x;
             ss_texture.height = original_size.y;
             drag_offset = I32Vector { x: 0, y: 0 };
-            image_position = I32Vector { x: 0, y: 0 };
+            img_origin = I32Vector { x: 0, y: 0 };
         }
 
         // Show image on screen
         win.draw_texture(
             &ss_texture,
-            image_position.x,
-            image_position.y,
+            img_origin.x,
+            img_origin.y,
             Color::RAYWHITE,
         );
 
