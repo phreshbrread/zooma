@@ -51,6 +51,7 @@ fn main() {
     let original_size = I32Vector::new(ss_texture.width, ss_texture.height);
 
     let render_size = get_render_size(&rl);
+
     let mut overlay_tex = rl
         .load_render_texture(&rl_thread, render_size.0 as u32, render_size.1 as u32)
         .expect("Failed to create overlay texture");
