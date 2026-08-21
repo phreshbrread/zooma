@@ -38,11 +38,8 @@
         libxcursor
         libxi
         clang
-        wayland
         libGL
         glfw
-        scrot
-        grim
       ];
 
       postFixup = ''
