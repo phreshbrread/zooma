@@ -1,11 +1,7 @@
-use std::env;
-use std::io::ErrorKind;
 use std::process::{self, Command};
+use std::{env, io::ErrorKind, path::PathBuf, sync::OnceLock};
 
 use crate::zooma_error::ZoomaError;
-
-// TODO: Change to accomodate for other platforms
-pub const TMP_SS_PATH: &str = "/tmp/zooma.png";
 
 pub struct I32Vector {
     pub x: i32,
@@ -22,6 +18,19 @@ impl I32Vector {
         return Self { x: a, y: b };
     }
 }
+
+// --- Temporary screenshot path (global) -------------------------------
+// Path is set this way so it's platform-agnostic, and so that main.rs can also access it.
+// Could probably be better, but I lack the knowledge at the moment.
+pub static TMP_SS_PATH: OnceLock<PathBuf> = OnceLock::new();
+
+// TODO: Handle error properly
+pub fn set_temp_ss_path() {
+    TMP_SS_PATH
+        .set(PathBuf::from(std::env::temp_dir().join("zooma.png")))
+        .expect("Failed to set temporary screenshot path");
+}
+// ----------------------------------------------------------------------
 
 pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
     let e = match env::var("XDG_SESSION_TYPE") {
@@ -43,7 +52,12 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
         // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
             let cmd = Command::new("scrot")
-                .args(["-Z", "0", TMP_SS_PATH, "-o"])
+                .args([
+                    "-Z",
+                    "0",
+                    &TMP_SS_PATH.get().unwrap().to_string_lossy(),
+                    "-o",
+                ])
                 .output();
 
             match cmd {
@@ -68,7 +82,12 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
 
             if current_desktop == "KDE" {
                 let cmd = Command::new("spectacle")
-                    .args(["-b", "-n", "-o", TMP_SS_PATH])
+                    .args([
+                        "-b",
+                        "-n",
+                        "-o",
+                        &TMP_SS_PATH.get().unwrap().to_string_lossy(),
+                    ])
                     .output();
 
                 match cmd {
@@ -82,7 +101,9 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                 }
             }
 
-            let cmd = Command::new("grim").args(["-l", "0", TMP_SS_PATH]).output();
+            let cmd = Command::new("grim")
+                .args(["-l", "0", &TMP_SS_PATH.get().unwrap().to_string_lossy()])
+                .output();
 
             match cmd {
                 Err(e) => match e.kind() {

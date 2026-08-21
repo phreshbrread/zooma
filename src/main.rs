@@ -1,10 +1,16 @@
 mod library;
 mod zooma_error;
+
 use library::*;
 
 use raylib::prelude::*;
 
+// General TODO:
+// - Delete temp screenshot once loaded
+
 fn main() {
+    set_temp_ss_path();
+
     match take_screenshot() {
         Ok(()) => (), // Success
         Err(e) => handle_zooma_error(e),
@@ -20,7 +26,8 @@ fn main() {
     rl.set_target_fps(60);
 
     // Load texture from temporary screenshot
-    let img = Image::load_image(TMP_SS_PATH).expect("Failed to load temporary screenshot");
+    let img = Image::load_image(&TMP_SS_PATH.get().unwrap().to_string_lossy())
+        .expect("Failed to load temporary screenshot");
     let mut ss_texture = rl
         .load_texture_from_image(&rl_thread, &img)
         .expect("Failed to create texture");
