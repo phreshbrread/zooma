@@ -40,6 +40,7 @@
         clang
         libGL
         glfw
+        wayland
       ];
 
       postFixup = ''
