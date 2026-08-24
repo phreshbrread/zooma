@@ -11,7 +11,7 @@ pub enum ZoomaError {
 }
 
 impl fmt::Display for ZoomaError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             _ => todo!("Implement fmt::Display for ZoomaError"),
         }
