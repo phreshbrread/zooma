@@ -3,5 +3,8 @@ name = "zooma"
 version = "1.0.2"
 edition = "2024"
 
+[profile.dev]
+debug = "line-tables-only"
+
 [dependencies]
 raylib = { version = "6.0", features = ["wayland"] }
