@@ -1,22 +1,16 @@
 use zooma::*;
 
 use raylib::prelude::*;
-use std::{fs::remove_file, process};
+use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
 
 fn main() {
-    match set_temp_ss_path() {
-        Err(e) => {
-            println!("Error setting temporary screenshot path: {:#?}", e);
-            process::exit(1);
-        }
-        Ok(_) => (),
-    }
+    // Determine temporary screenshot path
+    let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
 
-    let ss_path = TMP_SS_PATH.get().unwrap();
-
-    match take_screenshot() {
-        Ok(()) => (), // Success
+    // TODO: Handle error here instead of lib.rs
+    match take_screenshot(&ss_path) {
         Err(e) => handle_zooma_error(e),
+        Ok(()) => (), // Success
     }
 
     // Initialize Raylib

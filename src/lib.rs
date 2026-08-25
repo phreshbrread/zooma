@@ -6,7 +6,6 @@ use std::{
     io::ErrorKind,
     path::PathBuf,
     process::{self, Command},
-    sync::OnceLock,
 };
 
 pub struct I32Vector {
@@ -25,16 +24,6 @@ impl I32Vector {
     }
 }
 
-// Safe global path variable set during runtime
-pub static TMP_SS_PATH: OnceLock<PathBuf> = OnceLock::new();
-
-// Path is set this way so its platform-agnostic, and so that main.rs can access it.
-// Could probably be better, but I lack the knowledge at the moment.
-pub fn set_temp_ss_path() -> Result<(), PathBuf> {
-    TMP_SS_PATH.set(PathBuf::from(env::temp_dir().join("zooma.png")))?;
-    return Ok(());
-}
-
 pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
     let e = match env::var("XDG_SESSION_TYPE") {
         Ok(o) => o,
@@ -48,12 +37,10 @@ pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
     }
 }
 
-pub fn take_screenshot() -> Result<(), ZoomaError> {
-    let ss_path = TMP_SS_PATH.get().unwrap();
+pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
+    let env = get_current_environment()?;
 
-    let e = get_current_environment()?;
-
-    match e {
+    match env {
         // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
             let cmd = Command::new("scrot")
