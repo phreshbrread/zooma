@@ -15,7 +15,7 @@
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
       pname   = "zooma";
-      version = "1.0.2";
+      version = "1.0.3";
       src     = ./.;
       cargoLock.lockFile = ./Cargo.lock;
 

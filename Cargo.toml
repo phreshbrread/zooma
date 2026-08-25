@@ -1,6 +1,6 @@
 [package]
 name = "zooma"
-version = "1.0.2"
+version = "1.0.3"
 edition = "2024"
 
 [profile.dev]
