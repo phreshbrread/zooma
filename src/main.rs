@@ -46,9 +46,9 @@ fn main() {
     }
 
     // Set positions & offsets for temp screenshot
-    let mut img_origin = I32Vector::new(0, 0);
-    let mut drag_offset = I32Vector::new(0, 0);
-    let original_size = I32Vector::new(ss_texture.width, ss_texture.height);
+    let mut img_origin = I32Vector2::new(0, 0);
+    let mut drag_offset = I32Vector2::new(0, 0);
+    let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);
 
     let render_size = get_render_size(&rl);
 
@@ -126,8 +126,8 @@ fn main() {
         if win.is_key_released(KeyboardKey::KEY_R) {
             ss_texture.width = original_size.x;
             ss_texture.height = original_size.y;
-            drag_offset = I32Vector { x: 0, y: 0 };
-            img_origin = I32Vector { x: 0, y: 0 };
+            drag_offset = I32Vector2 { x: 0, y: 0 };
+            img_origin = I32Vector2 { x: 0, y: 0 };
         }
 
         // Show image on screen

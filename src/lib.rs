@@ -8,7 +8,7 @@ use std::{
     process::{self, Command},
 };
 
-pub struct I32Vector {
+pub struct I32Vector2 {
     pub x: i32,
     pub y: i32,
 }
@@ -18,7 +18,7 @@ pub enum DisplayProtocol {
     Wayland,
 }
 
-impl I32Vector {
+impl I32Vector2 {
     pub fn new(a: i32, b: i32) -> Self {
         return Self { x: a, y: b };
     }
