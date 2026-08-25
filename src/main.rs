@@ -57,6 +57,8 @@ fn main() {
         .expect("Failed to create overlay texture");
 
     let mut circle_size: f32 = render_size.1 as f32 / 12.0;
+
+    // TODO: Draw some sort of indicator that the program is active
     while !rl.window_should_close() {
         let mouse_pos: (i32, i32) = (rl.get_mouse_x(), rl.get_mouse_y());
 
