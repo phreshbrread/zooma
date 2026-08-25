@@ -43,6 +43,8 @@ pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
 }
 
 pub fn take_screenshot() -> Result<(), ZoomaError> {
+    let ss_path = TMP_SS_PATH.get().unwrap();
+
     let e = get_current_environment()?;
 
     match e {
@@ -52,7 +54,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                 .args([
                     "-Z",
                     "0",
-                    &TMP_SS_PATH.get().unwrap().to_string_lossy(),
+                    &ss_path.to_string_lossy(),
                     "-o",
                 ])
                 .output();
@@ -83,7 +85,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
                         "-b",
                         "-n",
                         "-o",
-                        &TMP_SS_PATH.get().unwrap().to_string_lossy(),
+                        &ss_path.to_string_lossy(),
                     ])
                     .output();
 
@@ -99,7 +101,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
             }
 
             let cmd = Command::new("grim")
-                .args(["-l", "0", &TMP_SS_PATH.get().unwrap().to_string_lossy()])
+                .args(["-l", "0", &ss_path.to_string_lossy()])
                 .output();
 
             match cmd {

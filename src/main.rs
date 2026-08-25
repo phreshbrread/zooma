@@ -14,6 +14,8 @@ fn main() {
         }
     }
 
+    let ss_path = TMP_SS_PATH.get().unwrap();
+
     match take_screenshot() {
         Ok(()) => (), // Success
         Err(e) => handle_zooma_error(e),
@@ -29,7 +31,7 @@ fn main() {
     rl.set_target_fps(60);
 
     // Load texture from temporary screenshot
-    let img = match Image::load_image(&TMP_SS_PATH.get().unwrap().to_string_lossy()) {
+    let img = match Image::load_image(&ss_path.to_string_lossy()) {
         Ok(o) => o,
         Err(e) => {
             println!("Failed to load temporary screenshot: {:?}", e);
@@ -43,7 +45,7 @@ fn main() {
             process::exit(1);
         }
     };
-    match remove_file(&TMP_SS_PATH.get().unwrap()) {
+    match remove_file(ss_path) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to remove temporary screenshot file {:?}", e);
