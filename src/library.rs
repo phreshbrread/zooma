@@ -19,16 +19,15 @@ impl I32Vector {
     }
 }
 
-// --- Temporary screenshot path (global) -------------------------------
-// Path is set this way so it's platform-agnostic, and so that main.rs can also access it.
-// Could probably be better, but I lack the knowledge at the moment.
+// Safe global path variable set during runtime
 pub static TMP_SS_PATH: OnceLock<PathBuf> = OnceLock::new();
 
+// Path is set this way so it's platform-agnostic, and so that main.rs can also access it.
+// Could probably be better, but I lack the knowledge at the moment.
 pub fn set_temp_ss_path() -> Result<(), PathBuf> {
     TMP_SS_PATH.set(PathBuf::from(std::env::temp_dir().join("zooma.png")))?;
     return Ok(());
 }
-// ----------------------------------------------------------------------
 
 pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
     let e = match env::var("XDG_SESSION_TYPE") {
