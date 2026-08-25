@@ -50,7 +50,7 @@ fn main() {
     let mut drag_offset = I32Vector2::new(0, 0);
     let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);
 
-    let render_size = get_render_size(&rl);
+    let render_size: (i32, i32) = (rl.get_render_width(), rl.get_render_height());
 
     let mut overlay_tex = rl
         .load_render_texture(&rl_thread, render_size.0 as u32, render_size.1 as u32)
@@ -58,8 +58,9 @@ fn main() {
 
     let mut circle_size: f32 = render_size.1 as f32 / 12.0;
     while !rl.window_should_close() {
-        let mouse_pos = (rl.get_mouse_x(), rl.get_mouse_y());
-        // Create overlay texture
+        let mouse_pos: (i32, i32) = (rl.get_mouse_x(), rl.get_mouse_y());
+
+        // --- Create overlay texture --------------------------------------------
         {
             let mut dt = rl.begin_texture_mode(&rl_thread, &mut overlay_tex);
 
@@ -72,6 +73,7 @@ fn main() {
                 b.draw_circle(mouse_pos.0, mouse_pos.1, circle_size, Color::WHITE);
             }
         }
+        // -----------------------------------------------------------------------
 
         // Avoid calling is_key_down multiple times
         let ctrl_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL);
@@ -164,8 +166,4 @@ fn main() {
             }
         }
     }
-}
-
-fn get_render_size(w: &RaylibHandle) -> (i32, i32) {
-    return (w.get_render_width(), w.get_render_height());
 }
