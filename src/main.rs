@@ -5,11 +5,11 @@ use std::{fs::remove_file, process};
 
 fn main() {
     match set_temp_ss_path() {
-        Ok(_) => (),
         Err(e) => {
             println!("Error setting temporary screenshot path: {:#?}", e);
             process::exit(1);
         }
+        Ok(_) => (),
     }
 
     let ss_path = TMP_SS_PATH.get().unwrap();
@@ -30,25 +30,25 @@ fn main() {
 
     // Load texture from temporary screenshot
     let img = match Image::load_image(&ss_path.to_string_lossy()) {
-        Ok(o) => o,
         Err(e) => {
             println!("Failed to load temporary screenshot: {:?}", e);
             process::exit(1);
         }
+        Ok(o) => o,
     };
     let mut ss_texture = match rl.load_texture_from_image(&rl_thread, &img) {
-        Ok(o) => o,
         Err(e) => {
             println!("Failed to create texture: {:?}", e);
             process::exit(1);
         }
+        Ok(o) => o,
     };
     match remove_file(ss_path) {
-        Ok(_) => (),
         Err(e) => {
             println!("Failed to remove temporary screenshot file {:?}", e);
             process::exit(1);
         }
+        Ok(_) => (),
     }
 
     // Set positions & offsets for temp screenshot
