@@ -24,11 +24,9 @@ impl I32Vector {
 // Could probably be better, but I lack the knowledge at the moment.
 pub static TMP_SS_PATH: OnceLock<PathBuf> = OnceLock::new();
 
-// TODO: Handle error properly
-pub fn set_temp_ss_path() {
-    TMP_SS_PATH
-        .set(PathBuf::from(std::env::temp_dir().join("zooma.png")))
-        .expect("Failed to set temporary screenshot path");
+pub fn set_temp_ss_path() -> Result<(), PathBuf> {
+    TMP_SS_PATH.set(PathBuf::from(std::env::temp_dir().join("zooma.png")))?;
+    return Ok(());
 }
 // ----------------------------------------------------------------------
 

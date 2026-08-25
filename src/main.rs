@@ -6,7 +6,13 @@ use raylib::prelude::*;
 use std::{fs::remove_file, process};
 
 fn main() {
-    set_temp_ss_path();
+    match set_temp_ss_path() {
+        Ok(_) => (),
+        Err(e) => {
+            println!("Error setting temporary screenshot path: {:#?}", e);
+            process::exit(1);
+        }
+    }
 
     match take_screenshot() {
         Ok(()) => (), // Success
