@@ -1,7 +1,13 @@
-use std::process::{self, Command};
-use std::{env, io::ErrorKind, path::PathBuf, sync::OnceLock};
+pub mod zooma_error;
+use zooma_error::ZoomaError;
 
-use crate::zooma_error::ZoomaError;
+use std::{
+    env,
+    io::ErrorKind,
+    path::PathBuf,
+    process::{self, Command},
+    sync::OnceLock,
+};
 
 pub struct I32Vector {
     pub x: i32,
@@ -22,10 +28,10 @@ impl I32Vector {
 // Safe global path variable set during runtime
 pub static TMP_SS_PATH: OnceLock<PathBuf> = OnceLock::new();
 
-// Path is set this way so it's platform-agnostic, and so that main.rs can also access it.
+// Path is set this way so its platform-agnostic, and so that main.rs can access it.
 // Could probably be better, but I lack the knowledge at the moment.
 pub fn set_temp_ss_path() -> Result<(), PathBuf> {
-    TMP_SS_PATH.set(PathBuf::from(std::env::temp_dir().join("zooma.png")))?;
+    TMP_SS_PATH.set(PathBuf::from(env::temp_dir().join("zooma.png")))?;
     return Ok(());
 }
 
@@ -51,12 +57,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
         // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
             let cmd = Command::new("scrot")
-                .args([
-                    "-Z",
-                    "0",
-                    &ss_path.to_string_lossy(),
-                    "-o",
-                ])
+                .args(["-Z", "0", &ss_path.to_string_lossy(), "-o"])
                 .output();
 
             match cmd {
@@ -81,12 +82,7 @@ pub fn take_screenshot() -> Result<(), ZoomaError> {
 
             if current_desktop == "KDE" {
                 let cmd = Command::new("spectacle")
-                    .args([
-                        "-b",
-                        "-n",
-                        "-o",
-                        &ss_path.to_string_lossy(),
-                    ])
+                    .args(["-b", "-n", "-o", &ss_path.to_string_lossy()])
                     .output();
 
                 match cmd {

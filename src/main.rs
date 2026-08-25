@@ -1,6 +1,4 @@
-mod library;
-mod zooma_error;
-use library::*;
+use zooma::*;
 
 use raylib::prelude::*;
 use std::{fs::remove_file, process};
