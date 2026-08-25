@@ -56,9 +56,12 @@ fn main() {
         .load_render_texture(&rl_thread, render_size.0 as u32, render_size.1 as u32)
         .expect("Failed to create overlay texture");
 
-    let mut circle_size: f32 = render_size.1 as f32 / 12.0;
+    let mut circle_limit: f32 = 0.0;
+    let mut circle_size: f32 = get_render_size_average(render_size.0, render_size.1) / 12.0;
+
     while !rl.window_should_close() {
         let mouse_pos: (i32, i32) = (rl.get_mouse_x(), rl.get_mouse_y());
+        circle_limit = get_render_size_average(ren, h) / 100.0;
 
         // --- Create overlay texture --------------------------------------------
         {
@@ -164,6 +167,12 @@ fn main() {
             } else if win.get_mouse_wheel_move() < 0.0 {
                 circle_size += 10.0;
             }
+
+            win.draw_text(&circle_size.to_string(), 0, 0, 32, Color::GREEN);
         }
     }
+}
+
+fn get_render_size_average(w: i32, h: i32) -> f32 {
+    return (w as f32 + h as f32) / 2.0;
 }
