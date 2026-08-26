@@ -3,6 +3,7 @@ use zooma::*;
 use raylib::prelude::*;
 use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
 
+// TODO: Smooth zooming
 fn main() {
     // Determine temporary screenshot path
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
@@ -110,8 +111,8 @@ fn main() {
                     .saturating_add((ss_texture.height as f32 * 0.05) as i32);
             }
         } else if wheel_move < 0.0 && !shift_key_down {
-            // 2x outward limit
-            if ss_texture.height > original_size.y / 2 {
+            // 1.2x outward limit
+            if ss_texture.height > (original_size.y as f32 / 1.2) as i32 {
                 ss_texture.width = ss_texture
                     .width
                     .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
@@ -136,6 +137,7 @@ fn main() {
             new_origin.reset();
         }
 
+        // Overwrite old origin with the new one
         img_origin = new_origin;
 
         // Show image on screen
