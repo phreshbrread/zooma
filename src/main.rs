@@ -46,16 +46,16 @@ fn main() {
         Ok(_) => (),
     }
 
-    // Set positions & offsets for temp screenshot
+    // Set positions & offsets for image
+    let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);
     let mut img_origin: I32Vector2;
     let mut new_origin = I32Vector2::default();
     let mut drag_offset = I32Vector2::default();
-    let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);
 
-    let render_size: (i32, i32) = (rl.get_render_width(), rl.get_render_height());
+    let render_size: (u32, u32) = (rl.get_render_width() as u32, rl.get_render_height() as u32);
 
     let mut overlay_tex = rl
-        .load_render_texture(&rl_thread, render_size.0 as u32, render_size.1 as u32)
+        .load_render_texture(&rl_thread, render_size.0, render_size.1)
         .expect("Failed to create overlay texture");
 
     let mut circle_size: f32 = render_size.1 as f32 / 12.0;
