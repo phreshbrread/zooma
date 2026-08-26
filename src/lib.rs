@@ -8,6 +8,7 @@ use std::{
     process::{self, Command},
 };
 
+#[derive(Clone, Copy, Debug, Default)]
 pub struct I32Vector2 {
     pub x: i32,
     pub y: i32,
@@ -21,6 +22,11 @@ pub enum DisplayProtocol {
 impl I32Vector2 {
     pub fn new(a: i32, b: i32) -> Self {
         return Self { x: a, y: b };
+    }
+
+    pub fn reset(&mut self) {
+        self.x = 0;
+        self.y = 0;
     }
 }
 

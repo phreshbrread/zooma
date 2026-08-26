@@ -46,8 +46,9 @@ fn main() {
     }
 
     // Set positions & offsets for temp screenshot
-    let mut img_origin = I32Vector2::new(0, 0);
-    let mut drag_offset = I32Vector2::new(0, 0);
+    let mut img_origin: I32Vector2;
+    let mut new_origin = I32Vector2::default();
+    let mut drag_offset = I32Vector2::default();
     let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);
 
     let render_size: (i32, i32) = (rl.get_render_width(), rl.get_render_height());
@@ -123,16 +124,19 @@ fn main() {
 
         // Set image display position
         // TODO: Set reasonable position clamps
-        img_origin.x = 0 + drag_offset.x;
-        img_origin.y = 0 + drag_offset.y;
+        new_origin.x = 0 + drag_offset.x;
+        new_origin.y = 0 + drag_offset.y;
 
         // Reset image if R is pressed
         if win.is_key_released(KeyboardKey::KEY_R) {
             ss_texture.width = original_size.x;
             ss_texture.height = original_size.y;
-            drag_offset = I32Vector2 { x: 0, y: 0 };
-            img_origin = I32Vector2 { x: 0, y: 0 };
+
+            drag_offset.reset();
+            new_origin.reset();
         }
+
+        img_origin = new_origin;
 
         // Show image on screen
         win.draw_texture(&ss_texture, img_origin.x, img_origin.y, Color::RAYWHITE);
