@@ -101,7 +101,7 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
                         }
                         _ => panic!("Unhandled screenshot error: {:#?}", e.kind()),
                     },
-                    Ok(_) => (),
+                    Ok(_) => return Ok(()),
                 }
             }
 
@@ -116,7 +116,7 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
                     }
                     _ => panic!("Unhandled grim error: {:#?}", e.kind()),
                 },
-                Ok(_) => (),
+                Ok(_) => return Ok(()),
             }
 
             // Safe to unwrap here because this only executes if cmd succeeded
