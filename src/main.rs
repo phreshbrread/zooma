@@ -58,7 +58,8 @@ fn main() {
         .load_render_texture(&rl_thread, render_size.0, render_size.1)
         .expect("Failed to create overlay texture");
 
-    let mut circle_size: f32 = render_size.1 as f32 / 12.0;
+    let original_circle_size: f32 = render_size.1 as f32 / 12.0;
+    let mut circle_size = original_circle_size;
 
     // TODO: Draw some sort of indicator that the program is active
     while !rl.window_should_close() {
@@ -80,8 +81,10 @@ fn main() {
         // -----------------------------------------------------------------------
 
         // Avoid calling is_key_down multiple times
-        let ctrl_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL);
-        let shift_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT);
+        let ctrl_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_CONTROL)
+            || rl.is_key_down(KeyboardKey::KEY_RIGHT_CONTROL);
+        let shift_key_down = rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT)
+            || rl.is_key_down(KeyboardKey::KEY_RIGHT_SHIFT);
 
         let mut win = rl.begin_drawing(&rl_thread);
         win.clear_background(Color::BLACK);
@@ -133,6 +136,8 @@ fn main() {
             ss_texture.width = original_size.x;
             ss_texture.height = original_size.y;
 
+            circle_size = original_circle_size;
+
             drag_offset.reset();
             new_origin.reset();
         }
@@ -165,7 +170,7 @@ fn main() {
             );
         }
 
-        if win.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) {
+        if shift_key_down {
             // TODO: Set clamps
             if win.get_mouse_wheel_move() > 0.0 {
                 circle_size -= 10.0;
