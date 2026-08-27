@@ -1,10 +1,11 @@
 # zooma
-A pretty basic clone of [boomer](https://github.com/tsoding/boomer) for X11 and Wayland.
+Basic screen zoomer heavily inspired by [boomer](https://github.com/tsoding/boomer), intended for all X11 and Wayland environments.
 
 ### Runtime Dependencies
 - ``scrot`` (for X11)
 - ``grim`` (for Wayland)
-- ``spectacle`` (optional, for KDE specifically)
+- ``spectacle`` (optional, for KDE Wayland)
+- ``flameshot`` (optional, for GNOME Wayland)
 - ``glfw``
 - ``libgl``
 - ``libx11``
@@ -12,6 +13,11 @@ A pretty basic clone of [boomer](https://github.com/tsoding/boomer) for X11 and 
 - ``libxi``
 - ``libxinerama``
 - ``libxkbcommon``
+
+### Build Dependencies
+- ``glfw``
+- ``cmake``
+- ``clang``
 
 
 

@@ -89,6 +89,22 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
                 }
             }
 
+            if current_desktop == "GNOME" {
+                let cmd = Command::new("flameshot")
+                    .args(["full", "-p", &ss_path.to_string_lossy()])
+                    .output();
+
+                match cmd {
+                    Err(e) => match e.kind() {
+                        ErrorKind::NotFound => {
+                            return Err(ZoomaError::MissingDependency("flameshot".into()));
+                        }
+                        _ => panic!("Unhandled screenshot error: {:#?}", e.kind()),
+                    },
+                    Ok(_) => (),
+                }
+            }
+
             let cmd = Command::new("grim")
                 .args(["-l", "0", &ss_path.to_string_lossy()])
                 .output();
