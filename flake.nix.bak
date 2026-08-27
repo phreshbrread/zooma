@@ -53,44 +53,6 @@
         --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.libGL pkgs.glfw pkgs.raylib pkgs.libX11 pkgs.libXcursor pkgs.libXi pkgs.libXinerama pkgs.libxkbcommon ]}
       '';
     };
-
-    # Dev shell
-    devShells.${system}.default = pkgs.mkShell {
-      inputsFrom = [ self.packages.${system}.default ];
-      buildInputs = with pkgs; [
-        cargo
-        rustc
-        rustfmt
-        clippy
-        rust-analyzer
-        cmake
-        rustPlatform.bindgenHook
-        llvmPackages.libclang
-        raylib
-        cmake
-        libx11
-        libxcb
-        libxau
-        libxdmcp
-        libxinerama
-        libxcursor
-        libxi
-        clang
-        wayland
-        libGL
-        glfw
-        scrot
-        grim
-      ];
-
-      BINDGEN_EXTRA_CLANG_ARGS = "-I${pkgs.glibc.dev}/include";
-
-      RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
-
-      shellHook = ''
-        export LD_LIBRARY_PATH=${pkgs.libGL}/lib:${pkgs.libx11}/lib:${pkgs.libxrandr}/lib:${pkgs.libxinerama}/lib:${pkgs.libxcursor}/lib:${pkgs.libxi}/lib:$LD_LIBRARY_PATH
-      '';
-    };
   };
 }
 
