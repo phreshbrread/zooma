@@ -128,35 +128,3 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
         } // ------------------------------------------------------------
     }
 }
-
-pub fn handle_zooma_error(ze: ZoomaError) -> ! {
-    match ze {
-        ZoomaError::MissingXdgSessionType => {
-            println!("Failed to read $XDG_SESSION_TYPE environment variable");
-            process::exit(1);
-        }
-        ZoomaError::InvalidXdgSessionType(session_value) => {
-            println!(
-                "Invalid $XDG_SESSION_TYPE, expected \
-                \"x11\" or \"wayland\", got \"{:}\"",
-                session_value
-            );
-            process::exit(1);
-        }
-        ZoomaError::MissingDependency(dep) => {
-            println!("Missing dependency: \'{:}\'", dep);
-            process::exit(1);
-        }
-        ZoomaError::UnsupportedEnvironment => {
-            println!("The running environment is currently unsupported");
-            process::exit(1);
-        }
-        ZoomaError::MissingXdgCurrentDesktop => {
-            println!(
-                "Failed to read $XDG_CURRENT_DESKTOP, please \
-                make sure it is set correctly"
-            );
-            process::exit(1);
-        }
-    }
-}

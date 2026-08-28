@@ -1,14 +1,13 @@
-use zooma::*;
-
-use raylib::prelude::*;
 use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
+use raylib::prelude::*;
+
+use zooma::{self::*, zooma_error::ZoomaError};
 
 // TODO: Smooth zooming
 fn main() {
     // Determine temporary screenshot path
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
 
-    // TODO: Handle error here instead of lib.rs
     match take_screenshot(&ss_path) {
         Err(e) => handle_zooma_error(e),
         Ok(()) => (), // Success
@@ -177,6 +176,38 @@ fn main() {
             } else if win.get_mouse_wheel_move() < 0.0 {
                 circle_size += 10.0;
             }
+        }
+    }
+}
+
+fn handle_zooma_error(ze: ZoomaError) -> ! {
+    match ze {
+        ZoomaError::MissingXdgSessionType => {
+            println!("Failed to read $XDG_SESSION_TYPE environment variable");
+            process::exit(1);
+        }
+        ZoomaError::InvalidXdgSessionType(session_value) => {
+            println!(
+                "Invalid $XDG_SESSION_TYPE, expected \
+                \"x11\" or \"wayland\", got \"{:}\"",
+                session_value
+            );
+            process::exit(1);
+        }
+        ZoomaError::MissingDependency(dep) => {
+            println!("Missing dependency: \'{:}\'", dep);
+            process::exit(1);
+        }
+        ZoomaError::UnsupportedEnvironment => {
+            println!("The running environment is currently unsupported");
+            process::exit(1);
+        }
+        ZoomaError::MissingXdgCurrentDesktop => {
+            println!(
+                "Failed to read $XDG_CURRENT_DESKTOP, please \
+                make sure it is set correctly"
+            );
+            process::exit(1);
         }
     }
 }
