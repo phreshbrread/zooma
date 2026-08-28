@@ -42,7 +42,11 @@ pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
         _ => return Err(ZoomaError::InvalidXdgSessionType(e.into())),
     }
 }
+#[cfg(target_os = "windows")]
+pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
+}
 
+#[cfg(target_os = "linux")]
 pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
     let env = get_current_environment()?;
 
