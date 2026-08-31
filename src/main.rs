@@ -52,6 +52,7 @@ fn main() {
     let mut drag_offset = I32Vector2::default();
 
     let render_size: (u32, u32) = (rl.get_render_width() as u32, rl.get_render_height() as u32);
+    let render_size_avg: f32 = (render_size.0 + render_size.1) as f32 / 2.0;
 
     let mut overlay_tex = rl
         .load_render_texture(&rl_thread, render_size.0, render_size.1)
@@ -170,10 +171,16 @@ fn main() {
         }
 
         if shift_key_down {
-            // TODO: Set clamps
+            // TODO: Create variables for min & max circle size
             if win.get_mouse_wheel_move() > 0.0 {
+                if circle_size < render_size_avg * 0.02 {
+                    circle_size = render_size_avg * 0.02
+                }
                 circle_size -= 10.0;
             } else if win.get_mouse_wheel_move() < 0.0 {
+                if circle_size > render_size_avg / 2.0 {
+                    circle_size = render_size_avg / 3.0;
+                }
                 circle_size += 10.0;
             }
         }
