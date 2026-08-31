@@ -1,5 +1,5 @@
-use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
 use raylib::prelude::*;
+use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
 
 use zooma::{self::*, zooma_error::ZoomaError};
 

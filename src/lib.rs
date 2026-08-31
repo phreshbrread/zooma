@@ -44,6 +44,7 @@ pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
 }
 #[cfg(target_os = "windows")]
 pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
+    return Ok(());
 }
 
 #[cfg(target_os = "linux")]
@@ -53,19 +54,24 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
     match env {
         // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
-            let cmd = Command::new("scrot")
-                .args(["-Z", "0", &ss_path.to_string_lossy(), "-o"])
-                .output();
+            return run_screenshot_command(
+                "scrot",
+                vec!["-Z", "0", &ss_path.to_string_lossy(), "-o"],
+            );
 
-            match cmd {
-                Err(e) => match e.kind() {
-                    ErrorKind::NotFound => {
-                        return Err(ZoomaError::MissingDependency("scrot".into()));
-                    }
-                    _ => panic!("Unhandled scrot error: {:#?}", e.kind()),
-                },
-                Ok(_) => return Ok(()),
-            }
+            //let cmd = Command::new("scrot")
+            //    .args(["-Z", "0", &ss_path.to_string_lossy(), "-o"])
+            //    .output();
+
+            //match cmd {
+            //    Err(e) => match e.kind() {
+            //        ErrorKind::NotFound => {
+            //            return Err(ZoomaError::MissingDependency("scrot".into()));
+            //        }
+            //        _ => panic!("Unhandled scrot error: {:#?}", e.kind()),
+            //    },
+            //    Ok(_) => return Ok(()),
+            //}
         }
         // ------------------------------------------------------------
 
@@ -109,6 +115,7 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
                 }
             }
 
+            // For non-GNOME / KDE environments we can just use grim
             let cmd = Command::new("grim")
                 .args(["-l", "0", &ss_path.to_string_lossy()])
                 .output();
@@ -122,13 +129,20 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
                 },
                 Ok(_) => return Ok(()),
             }
-
-            // Safe to unwrap here because this only executes if cmd succeeded
-            if !cmd.unwrap().status.success() {
-                return Err(ZoomaError::UnsupportedEnvironment);
-            }
-
-            return Ok(());
         } // ------------------------------------------------------------
+    }
+}
+
+pub fn run_screenshot_command(cmd: &str, args: Vec<&str>) -> Result<(), ZoomaError> {
+    let output = Command::new(cmd).args(args).output();
+
+    match output {
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => {
+                return Err(ZoomaError::MissingDependency(cmd.into()));
+            }
+            _ => panic!("Unhandled {} error: {:#?}", cmd, e.kind()),
+        },
+        Ok(_) => return Ok(()),
     }
 }

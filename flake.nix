@@ -1,15 +1,44 @@
 {
-  description        = "Zooma flake";
+  description = "Zooma flake";
 
   inputs = {
-    nixpkgs.url     = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs }:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    buildDeps = [
+      pkgs.cargo
+      pkgs.rustc
+      pkgs.rustfmt
+      pkgs.clippy
+      pkgs.rust-analyzer
+      pkgs.cmake
+      pkgs.rustPlatform.bindgenHook
+      pkgs.llvmPackages.libclang
+      pkgs.makeWrapper
+    ];
+    runtimeDeps = [
+      pkgs.clang
+      pkgs.wayland
+      pkgs.glfw
+      pkgs.pkg-config
+      pkgs.raylib
+      pkgs.cmake
+      pkgs.alsa-lib
+      pkgs.libx11
+      pkgs.libxrandr
+      pkgs.libxi
+      pkgs.libxcursor
+      pkgs.libxinerama
+      pkgs.libxkbcommon
+      pkgs.libxext
+      pkgs.libxrender
+      pkgs.libxfixes
+      pkgs.libglvnd
+    ];
   in
   {
     # Nix package
@@ -19,33 +48,9 @@
       src     = ./.;
       cargoLock.lockFile = ./Cargo.lock;
 
-      nativeBuildInputs = with pkgs; [
-        cargo
-        rustc
-        rustfmt
-        clippy
-        rust-analyzer
-        cmake
-        rustPlatform.bindgenHook
-        llvmPackages.libclang
-        makeWrapper
-      ];
+      nativeBuildInputs = buildDeps;
 
-      buildInputs = with pkgs; [
-        raylib
-        cmake
-        libx11
-        libxcb
-        libxau
-        libxdmcp
-        libxinerama
-        libxcursor
-        libxi
-        clang
-        libGL
-        glfw
-        wayland
-      ];
+      buildInputs = runtimeDeps;
 
       postFixup = ''
         wrapProgram $out/bin/zooma \
