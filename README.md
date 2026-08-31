@@ -4,10 +4,11 @@ Basic screen zoomer heavily inspired by [boomer](https://github.com/tsoding/boom
 ### Controls
 | Action | Control |
 | ---    | ---     | 
+| Exit  | ``Esc`` |
 | Pan around image | ``Left click`` + drag |
 | Spotlight effect | ``Ctrl`` |
-| Adjust spotlight size | ``Ctrl`` + ``shift`` + ``scroll`` up / down |
 | Zoom in / out | ``Scroll`` up / down |
+| Adjust spotlight size | ``Ctrl`` + ``shift`` + ``scroll`` up / down |
 | Reset image position & zoom and spotlight size | ``R`` |
 
 
