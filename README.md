@@ -28,7 +28,3 @@ Basic screen zoomer heavily inspired by [boomer](https://github.com/tsoding/boom
 - ``glfw``
 - ``cmake``
 - ``clang``
-
-
-
-(This readme is still under construction if you couldn't tell)
