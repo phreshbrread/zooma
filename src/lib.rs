@@ -52,31 +52,13 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
     let env = get_current_environment()?;
 
     match env {
-        // --- X11 ----------------------------------------------------
         DisplayProtocol::X11 => {
             return run_screenshot_command(
                 "scrot",
                 vec!["-Z", "0", &ss_path.to_string_lossy(), "-o"],
             );
-
-            //let cmd = Command::new("scrot")
-            //    .args(["-Z", "0", &ss_path.to_string_lossy(), "-o"])
-            //    .output();
-
-            //match cmd {
-            //    Err(e) => match e.kind() {
-            //        ErrorKind::NotFound => {
-            //            return Err(ZoomaError::MissingDependency("scrot".into()));
-            //        }
-            //        _ => panic!("Unhandled scrot error: {:#?}", e.kind()),
-            //    },
-            //    Ok(_) => return Ok(()),
-            //}
         }
-        // ------------------------------------------------------------
 
-        // --- Wayland ------------------------------------------------
-        // TODO: Remove duplicate code
         DisplayProtocol::Wayland => {
             let current_desktop = match env::var("XDG_CURRENT_DESKTOP") {
                 Ok(o) => o,
@@ -84,52 +66,22 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
             };
 
             if current_desktop == "KDE" {
-                let cmd = Command::new("spectacle")
-                    .args(["-b", "-n", "-o", &ss_path.to_string_lossy()])
-                    .output();
-
-                match cmd {
-                    Err(e) => match e.kind() {
-                        ErrorKind::NotFound => {
-                            return Err(ZoomaError::MissingDependency("spectacle".into()));
-                        }
-                        _ => panic!("Unhandled spectacle error: {:#?}", e.kind()),
-                    },
-                    Ok(_) => return Ok(()),
-                }
+                return run_screenshot_command(
+                    "spectacle",
+                    vec!["-b", "-n", "-o", &ss_path.to_string_lossy()],
+                );
             }
 
             if current_desktop == "GNOME" {
-                let cmd = Command::new("flameshot")
-                    .args(["full", "-p", &ss_path.to_string_lossy()])
-                    .output();
-
-                match cmd {
-                    Err(e) => match e.kind() {
-                        ErrorKind::NotFound => {
-                            return Err(ZoomaError::MissingDependency("flameshot".into()));
-                        }
-                        _ => panic!("Unhandled screenshot error: {:#?}", e.kind()),
-                    },
-                    Ok(_) => return Ok(()),
-                }
+                return run_screenshot_command(
+                    "flameshot",
+                    vec!["full", "-p", &ss_path.to_string_lossy()],
+                );
             }
 
             // For non-GNOME / KDE environments we can just use grim
-            let cmd = Command::new("grim")
-                .args(["-l", "0", &ss_path.to_string_lossy()])
-                .output();
-
-            match cmd {
-                Err(e) => match e.kind() {
-                    ErrorKind::NotFound => {
-                        return Err(ZoomaError::MissingDependency("grim".into()));
-                    }
-                    _ => panic!("Unhandled grim error: {:#?}", e.kind()),
-                },
-                Ok(_) => return Ok(()),
-            }
-        } // ------------------------------------------------------------
+            return run_screenshot_command("grim", vec!["-l", "0", &ss_path.to_string_lossy()]);
+        }
     }
 }
 
@@ -141,7 +93,7 @@ pub fn run_screenshot_command(cmd: &str, args: Vec<&str>) -> Result<(), ZoomaErr
             ErrorKind::NotFound => {
                 return Err(ZoomaError::MissingDependency(cmd.into()));
             }
-            _ => panic!("Unhandled {} error: {:#?}", cmd, e.kind()),
+            _ => todo!("Unhandled {} error: {:#?}", cmd, e.kind()),
         },
         Ok(_) => return Ok(()),
     }

@@ -38,9 +38,22 @@
       pkgs.libxrender
       pkgs.libxfixes
       pkgs.libglvnd
+      pkgs.scrot
+      pkgs.grim
     ];
   in
   {
+    # Dev shell
+    devShells.${system}.default = pkgs.mkShell {
+      nativeBuildInputs = buildDeps;
+      buildInputs = runtimeDeps;
+
+      shellHook = ''
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath runtimeDeps}"
+      '';
+    };
+
+
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
       pname   = "zooma";
@@ -49,7 +62,6 @@
       cargoLock.lockFile = ./Cargo.lock;
 
       nativeBuildInputs = buildDeps;
-
       buildInputs = runtimeDeps;
 
       postFixup = ''
