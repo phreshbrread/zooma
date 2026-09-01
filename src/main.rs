@@ -107,8 +107,16 @@ fn main() {
         }
         // -------------------------------------------------------------
 
+        // TODO: Only run on zoom events
+        // Get mouse position relative to image
+        let relative_x = mouse_pos.0 - drag_offset.x;
+        let relative_y = mouse_pos.1 - drag_offset.y;
+
+        // Capture size before changes
+        let old_w = ss_texture.width;
+        let old_h = ss_texture.height;
+
         // --- Zooming -------------------------------------------------
-        // TODO: Zoom image to cursor location
         let wheel_move = win.get_mouse_wheel_move();
         if wheel_move > 0.0 && !shift_key_down {
             // 20x inward limit
@@ -132,6 +140,14 @@ fn main() {
             }
         }
         // -------------------------------------------------------------
+
+        // Subtract image drift from screen position
+        let scale_factor = (
+            ss_texture.width as f32 / old_w as f32,
+            ss_texture.height as f32 / old_h as f32,
+        );
+        drag_offset.x -= ((relative_x as f32 * scale_factor.0 as f32) - relative_x as f32) as i32;
+        drag_offset.y -= ((relative_y as f32 * scale_factor.1 as f32) - relative_y as f32) as i32;
 
         // Set image display position
         // TODO: Set reasonable position clamps
