@@ -1,7 +1,7 @@
 use raylib::prelude::*;
 use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
 
-use zooma::{self::*, zooma_error::ZoomaError};
+use zooma::*;
 
 // TODO: Smooth zooming
 fn main() {
@@ -9,7 +9,10 @@ fn main() {
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
 
     match take_screenshot(&ss_path) {
-        Err(e) => handle_zooma_error(e),
+        Err(e) => {
+            println!("{}", e);
+            process::exit(1);
+        }
         Ok(()) => (), // Success
     }
 
@@ -25,7 +28,11 @@ fn main() {
     // Load texture from temporary screenshot
     let img = match Image::load_image(&ss_path.to_string_lossy()) {
         Err(e) => {
-            println!("Failed to load temporary screenshot: {:?}", e);
+            println!(
+                "\nFailed to load temporary screenshot.\n\
+                Reason: {:?}",
+                e
+            );
             process::exit(1);
         }
         Ok(o) => o,
@@ -183,38 +190,6 @@ fn main() {
                 }
                 circle_size += 10.0;
             }
-        }
-    }
-}
-
-fn handle_zooma_error(ze: ZoomaError) -> ! {
-    match ze {
-        ZoomaError::MissingXdgSessionType => {
-            println!("Failed to read $XDG_SESSION_TYPE environment variable");
-            process::exit(1);
-        }
-        ZoomaError::InvalidXdgSessionType(session_value) => {
-            println!(
-                "Invalid $XDG_SESSION_TYPE, expected \
-                \"x11\" or \"wayland\", got \"{:}\"",
-                session_value
-            );
-            process::exit(1);
-        }
-        ZoomaError::MissingDependency(dep) => {
-            println!("Missing dependency: \'{:}\'", dep);
-            process::exit(1);
-        }
-        ZoomaError::UnsupportedEnvironment => {
-            println!("The running environment is currently unsupported");
-            process::exit(1);
-        }
-        ZoomaError::MissingXdgCurrentDesktop => {
-            println!(
-                "Failed to read $XDG_CURRENT_DESKTOP, please \
-                make sure it is set correctly"
-            );
-            process::exit(1);
         }
     }
 }

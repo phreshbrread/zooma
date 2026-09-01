@@ -93,7 +93,7 @@ pub fn run_screenshot_command(cmd: &str, args: Vec<&str>) -> Result<(), ZoomaErr
             ErrorKind::NotFound => {
                 return Err(ZoomaError::MissingDependency(cmd.into()));
             }
-            _ => todo!("Unhandled {} error: {:#?}", cmd, e.kind()),
+            _ => panic!("Unhandled {} error: {:#?}", cmd, e.kind()),
         },
         Ok(_) => return Ok(()),
     }
