@@ -1,12 +1,7 @@
 pub mod zooma_error;
 use zooma_error::ZoomaError;
 
-use std::{
-    env,
-    io::ErrorKind,
-    path::PathBuf,
-    process::{self, Command},
-};
+use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct I32Vector2 {

@@ -9,6 +9,10 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+
+    cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+    version = cargoToml.package.version;
+
     buildDeps = [
       pkgs.cargo
       pkgs.rustc
@@ -56,8 +60,8 @@
 
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
-      pname   = "zooma";
-      version = "1.1.2";
+      pname = cargoToml.package.name;
+      inherit version;
       src     = ./.;
       cargoLock.lockFile = ./Cargo.lock;
 
