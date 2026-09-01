@@ -1,7 +1,13 @@
 pub mod zooma_error;
+use serde::{Deserialize, Serialize};
+use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 use zooma_error::ZoomaError;
 
-use std::{env, io::ErrorKind, path::PathBuf, process::Command};
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserSettings {
+    zoom_multiplier: f32,
+    zoom_step: f32,
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct I32Vector2 {

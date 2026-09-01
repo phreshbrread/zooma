@@ -1,12 +1,14 @@
 use raylib::prelude::*;
-use std::{env::temp_dir, fs::remove_file, path::PathBuf, process};
+use std::{env, env::temp_dir, fs, path::PathBuf, process};
 
 use zooma::*;
 
-// TODO: Smooth zooming
 fn main() {
     // Determine temporary screenshot path
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
+
+    // TODO: Do this in a robust, cross-platform way (current method is temporary and only for Linux)
+    let config_path: PathBuf = PathBuf::from(env::var("XDG_CONFIG_HOME").unwrap()).join("zooma_config.toml");
 
     match take_screenshot(&ss_path) {
         Err(e) => {
@@ -44,7 +46,7 @@ fn main() {
         }
         Ok(o) => o,
     };
-    match remove_file(ss_path) {
+    match fs::remove_file(ss_path) {
         Err(e) => {
             println!("Failed to remove temporary screenshot file {:?}", e);
             process::exit(1);
@@ -117,6 +119,7 @@ fn main() {
         let old_h = ss_texture.height;
 
         // --- Zooming -------------------------------------------------
+        // TODO: Smooth zooming
         let wheel_move = win.get_mouse_wheel_move();
         if wheel_move > 0.0 && !shift_key_down {
             // 20x inward limit
