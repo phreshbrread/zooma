@@ -1,5 +1,11 @@
 use raylib::prelude::*;
-use std::{env, env::temp_dir, fs, path::PathBuf, process};
+use std::io::Write;
+use std::{
+    env::{self, temp_dir},
+    fs,
+    path::PathBuf,
+    process,
+};
 
 use zooma::*;
 
@@ -8,7 +14,45 @@ fn main() {
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
 
     // TODO: Do this in a robust, cross-platform way (current method is temporary and only for Linux)
-    let config_path: PathBuf = PathBuf::from(env::var("XDG_CONFIG_HOME").unwrap()).join("zooma_config.toml");
+    let config_path = PathBuf::from(
+        env::home_dir()
+            .unwrap() // $HOME should always be set on Linux
+            .join(match env::var("XDG_CONFIG_HOME") {
+                Ok(o) => o,
+                Err(_) => {
+                    println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
+                    String::from(".config")
+                }
+            })
+            .join("zooma")
+            .join("settings.toml"),
+    );
+    dbg!(&config_path);
+
+    // Start off uninitialized
+    let mut user_settings: UserSettings;
+
+    // TODO: Use try_exists() instead and handle errors appropriately
+    if !config_path.exists() {
+        // Create parent directories first
+        // TODO: Stop using unwrap()
+        let p = config_path.parent().unwrap();
+        fs::create_dir_all(p);
+
+        user_settings = UserSettings::default();
+        let settings_as_toml = toml::to_string(&user_settings);
+        let mut file = fs::File::create(config_path).unwrap();
+        // TODO: Write file
+
+        // TODO: Write settings file with defaults
+    } else {
+        // TODO: Read settings from file
+        // TODO: Extract reading into its own function
+        user_settings = UserSettings::default();
+    }
+
+    dbg!(&user_settings);
+    panic!("Testing file stuff rn");
 
     match take_screenshot(&ss_path) {
         Err(e) => {
