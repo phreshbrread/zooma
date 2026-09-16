@@ -12,6 +12,10 @@ Basic screen zoomer heavily inspired by [boomer](https://github.com/tsoding/boom
 | Reset image position & zoom and spotlight size | ``R`` |
 
 
+### Configuration
+User settings can be adjusted in ``settings.toml``.
+On most Linux systems, this will be ``~/.config/zooma/settings.toml``
+
 ### Runtime Dependencies
 - ``scrot`` (for X11)
 - ``grim`` (for Wayland)

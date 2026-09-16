@@ -57,7 +57,6 @@
       '';
     };
 
-
     # Nix package
     packages.${system}.default = pkgs.rustPlatform.buildRustPackage rec {
       pname = cargoToml.package.name;
@@ -71,7 +70,7 @@
       postFixup = ''
         wrapProgram $out/bin/zooma \
         --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.grim pkgs.scrot ]} \
-        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ pkgs.libGL pkgs.glfw pkgs.raylib pkgs.libX11 pkgs.libXcursor pkgs.libXi pkgs.libXinerama pkgs.libxkbcommon ]}
+        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ runtimeDeps ]}
       '';
     };
   };

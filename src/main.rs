@@ -29,30 +29,32 @@ fn main() {
     );
     dbg!(&config_path);
 
-    // Start off uninitialized
-    let mut user_settings: UserSettings;
+    // Start off as default settings
+    let mut user_settings = UserSettings::default();
 
     // TODO: Use try_exists() instead and handle errors appropriately
-    if !config_path.exists() {
-        // Create parent directories first
-        // TODO: Stop using unwrap()
-        let p = config_path.parent().unwrap();
-        fs::create_dir_all(p);
+    // TODO: Replace all instances of unwrap()
+    if config_path.exists() {
+        // Read from existing file, falling back to default if it fails
+        let config_file = fs::read_to_string(config_path).expect("Failed to read settings file");
 
-        user_settings = UserSettings::default();
-        let settings_as_toml = toml::to_string(&user_settings);
-        let mut file = fs::File::create(config_path).unwrap();
-        // TODO: Write file
-
-        // TODO: Write settings file with defaults
+        user_settings = toml::from_str(&config_file).unwrap_or_else(|err| {
+            println!("\n{}", err);
+            println!(
+                "WARNING: Failed to parse settings.toml\n\
+                Falling back to default settings"
+            );
+            UserSettings::default()
+        });
     } else {
-        // TODO: Read settings from file
-        // TODO: Extract reading into its own function
-        user_settings = UserSettings::default();
-    }
+        // Create parent directories first
+        let p = config_path.parent().unwrap();
+        fs::create_dir_all(p).unwrap();
 
-    dbg!(&user_settings);
-    panic!("Testing file stuff rn");
+        let settings_as_toml = toml::to_string(&user_settings).unwrap();
+        let mut file = fs::File::create(config_path).unwrap();
+        file.write_all(&settings_as_toml.as_bytes()).unwrap();
+    }
 
     match take_screenshot(&ss_path) {
         Err(e) => {
@@ -168,22 +170,22 @@ fn main() {
         if wheel_move > 0.0 && !shift_key_down {
             // 20x inward limit
             if ss_texture.width < original_size.x * 20 {
-                ss_texture.width = ss_texture
-                    .width
-                    .saturating_add((ss_texture.width as f32 * 0.05) as i32);
-                ss_texture.height = ss_texture
-                    .height
-                    .saturating_add((ss_texture.height as f32 * 0.05) as i32);
+                ss_texture.width = ss_texture.width.saturating_add(
+                    (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                );
+                ss_texture.height = ss_texture.height.saturating_add(
+                    (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                );
             }
         } else if wheel_move < 0.0 && !shift_key_down {
             // 1.2x outward limit
             if ss_texture.height > (original_size.y as f32 / 1.2) as i32 {
-                ss_texture.width = ss_texture
-                    .width
-                    .saturating_sub((ss_texture.width as f32 * 0.05) as i32);
-                ss_texture.height = ss_texture
-                    .height
-                    .saturating_sub((ss_texture.height as f32 * 0.05) as i32);
+                ss_texture.width = ss_texture.width.saturating_sub(
+                    (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                );
+                ss_texture.height = ss_texture.height.saturating_sub(
+                    (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                );
             }
         }
         // -------------------------------------------------------------
@@ -248,7 +250,7 @@ fn main() {
                 }
                 circle_size -= 10.0;
             } else if win.get_mouse_wheel_move() < 0.0 {
-                if circle_size > render_size_avg / 2.0 {
+                if circle_size > render_size_avg / 3.0 {
                     circle_size = render_size_avg / 3.0;
                 }
                 circle_size += 10.0;

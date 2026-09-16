@@ -5,7 +5,7 @@ use zooma_error::ZoomaError;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserSettings {
-    zoom_multiplier: f32,
+    pub zoom_multiplier: f32,
 }
 
 impl UserSettings {
