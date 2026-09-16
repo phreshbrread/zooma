@@ -16,16 +16,16 @@ fn main() {
     // TODO: Do this in a robust, cross-platform way (current method is temporary and only for Linux)
     let config_path = PathBuf::from(
         env::home_dir()
-            .unwrap() // $HOME should always be set on Linux
-            .join(match env::var("XDG_CONFIG_HOME") {
-                Ok(o) => o,
-                Err(_) => {
-                    println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
-                    String::from(".config")
-                }
-            })
-            .join("zooma")
-            .join("settings.toml"),
+        .unwrap() // $HOME should always be set on Linux
+        .join(match env::var("XDG_CONFIG_HOME") {
+            Ok(o) => o,
+            Err(_) => {
+                println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
+                String::from(".config")
+            }
+        })
+        .join("zooma")
+        .join("settings.toml"),
     );
     dbg!(&config_path);
 
@@ -35,7 +35,7 @@ fn main() {
     // TODO: Use try_exists() instead and handle errors appropriately
     // TODO: Replace all instances of unwrap()
     if config_path.exists() {
-        // Read from existing file, falling back to default if it fails
+        // Read from existing file, fall back to default if it fails
         let config_file = fs::read_to_string(config_path).expect("Failed to read settings file");
 
         user_settings = toml::from_str(&config_file).unwrap_or_else(|err| {
@@ -49,12 +49,13 @@ fn main() {
     } else {
         // Create parent directories first
         let p = config_path.parent().unwrap();
-        fs::create_dir_all(p).unwrap();
+        fs::create_dir_all(p).expect("Failed to create config path");
 
         let settings_as_toml = toml::to_string(&user_settings).unwrap();
-        let mut file = fs::File::create(config_path).unwrap();
-        file.write_all(&settings_as_toml.as_bytes()).unwrap();
-    }
+        let mut file = fs::File::create(config_path).expect("Failed to create settings.toml");
+        file.write_all(&settings_as_toml.as_bytes())
+            .expect("Failed to write to settings.toml");
+        }
 
     match take_screenshot(&ss_path) {
         Err(e) => {
@@ -78,7 +79,7 @@ fn main() {
         Err(e) => {
             println!(
                 "\nFailed to load temporary screenshot.\n\
-                Reason: {:?}",
+                Reason: {}",
                 e
             );
             process::exit(1);
@@ -105,6 +106,9 @@ fn main() {
     let mut img_origin: I32Vector2;
     let mut new_origin = I32Vector2::default();
     let mut drag_offset = I32Vector2::default();
+
+    let mut relative_x = 0;
+    let mut relative_y = 0;
 
     let render_size: (u32, u32) = (rl.get_render_width() as u32, rl.get_render_height() as u32);
     let render_size_avg: f32 = (render_size.0 + render_size.1) as f32 / 2.0;
@@ -150,42 +154,43 @@ fn main() {
             win.set_mouse_cursor(MouseCursor::MOUSE_CURSOR_RESIZE_ALL);
 
             let delta = win.get_mouse_delta();
-            drag_offset.x += delta.x as i32;
-            drag_offset.y += delta.y as i32;
+            drag_offset.x += (delta.x * user_settings.pan_multiplier) as i32;
+            drag_offset.y += (delta.y * user_settings.pan_multiplier) as i32;
         }
         // -------------------------------------------------------------
 
-        // TODO: Only run on zoom events
-        // Get mouse position relative to image
-        let relative_x = mouse_pos.0 - drag_offset.x;
-        let relative_y = mouse_pos.1 - drag_offset.y;
-
-        // Capture size before changes
+        // Capture screenshot size before changes
         let old_w = ss_texture.width;
         let old_h = ss_texture.height;
 
         // --- Zooming -------------------------------------------------
         // TODO: Smooth zooming
         let wheel_move = win.get_mouse_wheel_move();
-        if wheel_move > 0.0 && !shift_key_down {
-            // 20x inward limit
-            if ss_texture.width < original_size.x * 20 {
-                ss_texture.width = ss_texture.width.saturating_add(
-                    (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
-                );
-                ss_texture.height = ss_texture.height.saturating_add(
-                    (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
-                );
-            }
-        } else if wheel_move < 0.0 && !shift_key_down {
-            // 1.2x outward limit
-            if ss_texture.height > (original_size.y as f32 / 1.2) as i32 {
-                ss_texture.width = ss_texture.width.saturating_sub(
-                    (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
-                );
-                ss_texture.height = ss_texture.height.saturating_sub(
-                    (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
-                );
+        if wheel_move != 0.0 {
+            // Get mouse position relative to image
+            relative_x = mouse_pos.0 - drag_offset.x;
+            relative_y = mouse_pos.1 - drag_offset.y;
+
+            if wheel_move > 0.0 && !shift_key_down {
+                // 20x inward limit
+                if ss_texture.width < original_size.x * 20 {
+                    ss_texture.width = ss_texture.width.saturating_add(
+                        (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                    );
+                    ss_texture.height = ss_texture.height.saturating_add(
+                        (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                    );
+                }
+            } else if wheel_move < 0.0 && !shift_key_down {
+                // 1.2x outward limit
+                if ss_texture.height > (original_size.y as f32 / 1.2) as i32 {
+                    ss_texture.width = ss_texture.width.saturating_sub(
+                        (ss_texture.width as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                    );
+                    ss_texture.height = ss_texture.height.saturating_sub(
+                        (ss_texture.height as f32 * 0.05 * user_settings.zoom_multiplier) as i32,
+                    );
+                }
             }
         }
         // -------------------------------------------------------------

@@ -3,15 +3,18 @@ use serde::{Deserialize, Serialize};
 use std::{env, io::ErrorKind, path::PathBuf, process::Command};
 use zooma_error::ZoomaError;
 
+// TODO: Customizable keybinds
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserSettings {
     pub zoom_multiplier: f32,
+    pub pan_multiplier: f32,
 }
 
 impl UserSettings {
     pub fn default() -> Self {
         return Self {
             zoom_multiplier: 1.0,
+            pan_multiplier: 1.0,
         };
     }
 }
