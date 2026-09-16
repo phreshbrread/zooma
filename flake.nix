@@ -70,7 +70,7 @@
       postFixup = ''
         wrapProgram $out/bin/zooma \
         --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.grim pkgs.scrot ]} \
-        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath [ runtimeDeps ]}
+        --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath runtimeDeps}
       '';
     };
   };
