@@ -1,11 +1,5 @@
 use raylib::prelude::*;
-use std::io::Write;
-use std::{
-    env::{self, temp_dir},
-    fs,
-    path::PathBuf,
-    process,
-};
+use std::{env::temp_dir, fs, path::PathBuf, process};
 
 use zooma::*;
 
@@ -13,49 +7,22 @@ fn main() {
     // Determine temporary screenshot path
     let ss_path: PathBuf = PathBuf::from(temp_dir().join("zooma.png"));
 
-    // TODO: Do this in a robust, cross-platform way (current method is temporary and only for Linux)
-    let config_path = PathBuf::from(
-        env::home_dir()
-        .unwrap() // $HOME should always be set on Linux
-        .join(match env::var("XDG_CONFIG_HOME") {
-            Ok(o) => o,
-            Err(_) => {
-                println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
-                String::from(".config")
+    // Find where settings.toml lives
+    let config_path = get_config_path();
+
+    // Get settings from config file
+    let user_settings = match get_user_settings(config_path) {
+        Ok(ok) => ok,
+        Err(err) => match err {
+            custom_errors::SettingsError::TomlDe(_) => {
+                println!("Failed to read settings.toml");
+                print!("{}", err);
+                println!("Falling back to default settings\n");
+                UserSettings::default()
             }
-        })
-        .join("zooma")
-        .join("settings.toml"),
-    );
-    dbg!(&config_path);
-
-    // Start off as default settings
-    let mut user_settings = UserSettings::default();
-
-    // TODO: Use try_exists() instead and handle errors appropriately
-    // TODO: Replace all instances of unwrap()
-    if config_path.exists() {
-        // Read from existing file, fall back to default if it fails
-        let config_file = fs::read_to_string(config_path).expect("Failed to read settings file");
-
-        user_settings = toml::from_str(&config_file).unwrap_or_else(|err| {
-            println!("\n{}", err);
-            println!(
-                "WARNING: Failed to parse settings.toml\n\
-                Falling back to default settings"
-            );
-            UserSettings::default()
-        });
-    } else {
-        // Create parent directories first
-        let p = config_path.parent().unwrap();
-        fs::create_dir_all(p).expect("Failed to create config path");
-
-        let settings_as_toml = toml::to_string(&user_settings).unwrap();
-        let mut file = fs::File::create(config_path).expect("Failed to create settings.toml");
-        file.write_all(&settings_as_toml.as_bytes())
-            .expect("Failed to write to settings.toml");
-        }
+            _ => todo!("{}", err),
+        },
+    };
 
     match take_screenshot(&ss_path) {
         Err(e) => {

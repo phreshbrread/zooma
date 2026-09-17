@@ -10,6 +10,8 @@ pub enum ZoomaError {
     MissingDependency(Box<str>),
 }
 
+impl Error for ZoomaError {}
+
 impl fmt::Display for ZoomaError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -41,4 +43,37 @@ impl fmt::Display for ZoomaError {
     }
 }
 
-impl Error for ZoomaError {}
+#[derive(Debug)]
+pub enum SettingsError {
+    Io(std::io::Error),
+    TomlDe(toml::de::Error),
+    TomlSer(toml::ser::Error),
+}
+
+impl Error for SettingsError {}
+
+impl fmt::Display for SettingsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            SettingsError::Io(e) => return write!(f, "IO error: {}", e),
+            SettingsError::TomlDe(e) => return write!(f, "{}", e),
+            SettingsError::TomlSer(e) => return write!(f, "{}", e),
+        }
+    }
+}
+
+impl From<std::io::Error> for SettingsError {
+    fn from(value: std::io::Error) -> Self {
+        return Self::Io(value);
+    }
+}
+impl From<toml::de::Error> for SettingsError {
+    fn from(value: toml::de::Error) -> Self {
+        return Self::TomlDe(value);
+    }
+}
+impl From<toml::ser::Error> for SettingsError {
+    fn from(value: toml::ser::Error) -> Self {
+        return Self::TomlSer(value);
+    }
+}

@@ -1,7 +1,12 @@
-pub mod zooma_error;
+pub mod custom_errors;
+use custom_errors::*;
 use serde::{Deserialize, Serialize};
-use std::{env, io::ErrorKind, path::PathBuf, process::Command};
-use zooma_error::ZoomaError;
+use std::{
+    env, fs,
+    io::{ErrorKind, Write},
+    path::PathBuf,
+    process::Command,
+};
 
 // TODO: Customizable keybinds
 #[derive(Debug, Serialize, Deserialize)]
@@ -108,4 +113,43 @@ pub fn run_screenshot_command(cmd: &str, args: Vec<&str>) -> Result<(), ZoomaErr
         },
         Ok(_) => return Ok(()),
     }
+}
+
+pub fn get_config_path() -> PathBuf {
+    let path = PathBuf::from(
+        env::home_dir()
+            .unwrap() // $HOME should always be set on Linux
+            .join(match env::var("XDG_CONFIG_HOME") {
+                Ok(o) => o,
+                Err(_) => {
+                    println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
+                    String::from(".config")
+                }
+            })
+            .join("zooma")
+            .join("settings.toml"),
+    );
+
+    return path;
+}
+
+pub fn get_user_settings(config_path: PathBuf) -> Result<UserSettings, SettingsError> {
+    let mut user_settings = UserSettings::default();
+
+    // If the path exists, try to read the file
+    // If not, write defaults to a new file
+    if config_path.try_exists()? {
+        let config_file = fs::read_to_string(config_path)?;
+        user_settings = toml::from_str(&config_file)?;
+    } else {
+        // Create parent directories first
+        let p = config_path.parent().unwrap();
+        fs::create_dir_all(p)?;
+
+        let settings_as_toml = toml::to_string(&user_settings)?;
+        let mut file = fs::File::create(config_path)?;
+        file.write_all(&settings_as_toml.as_bytes())?;
+    }
+
+    return Ok(user_settings);
 }
