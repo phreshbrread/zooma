@@ -223,6 +223,7 @@ fn main() {
             let min_circle_size = render_size_avg / 3.0;
 
             if win.get_mouse_wheel_move() > 0.0 {
+                // TODO: Use circle_size.clamp() instead
                 if circle_size < max_circle_size {
                     circle_size = max_circle_size;
                 }
