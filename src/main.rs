@@ -219,15 +219,17 @@ fn main() {
         }
 
         if shift_key_down {
-            // TODO: Create variables for min & max circle size
+            let max_circle_size = render_size_avg * 0.02;
+            let min_circle_size = render_size_avg / 3.0;
+
             if win.get_mouse_wheel_move() > 0.0 {
-                if circle_size < render_size_avg * 0.02 {
-                    circle_size = render_size_avg * 0.02
+                if circle_size < max_circle_size {
+                    circle_size = max_circle_size;
                 }
                 circle_size -= 10.0;
             } else if win.get_mouse_wheel_move() < 0.0 {
-                if circle_size > render_size_avg / 3.0 {
-                    circle_size = render_size_avg / 3.0;
+                if circle_size > min_circle_size {
+                    circle_size = min_circle_size;
                 }
                 circle_size += 10.0;
             }
