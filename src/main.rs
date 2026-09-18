@@ -122,30 +122,12 @@ fn main() {
         win.set_mouse_cursor(MouseCursor::MOUSE_CURSOR_DEFAULT);
 
         // --- Panning -------------------------------------------------
-        // TODO: Set reasonable position clamps
         if win.is_mouse_button_down(MouseButton::MOUSE_BUTTON_LEFT) {
             win.set_mouse_cursor(MouseCursor::MOUSE_CURSOR_RESIZE_ALL);
 
             let delta = win.get_mouse_delta();
             drag_offset.x += (delta.x * user_settings.pan_multiplier) as i32;
             drag_offset.y += (delta.y * user_settings.pan_multiplier) as i32;
-
-            let left_clamp = (render_size.0 / 2) as i32;
-            let right_clamp = (0 - (render_size.0 / 2) as i32) as i32;
-            let upper_clamp = (render_size.1 / 2) as i32;
-            let lower_clamp = (0 - (render_size.1 / 2) as i32) as i32;
-            if drag_offset.x > left_clamp {
-                drag_offset.x = left_clamp;
-            }
-            if drag_offset.x < right_clamp {
-                drag_offset.x = right_clamp;
-            }
-            if drag_offset.y > upper_clamp {
-                drag_offset.y = upper_clamp;
-            }
-            if drag_offset.y < lower_clamp {
-                drag_offset.y = lower_clamp;
-            }
         }
         // -------------------------------------------------------------
 
