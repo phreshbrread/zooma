@@ -12,7 +12,6 @@ fn main() {
 
     // Get settings from config file
     let user_settings = match get_user_settings(config_path) {
-        Ok(ok) => ok,
         Err(err) => match err {
             custom_errors::SettingsError::TomlDe(_) => {
                 println!("Failed to read settings.toml");
@@ -27,14 +26,12 @@ fn main() {
             }
             _ => panic!("Unhandled error: {:?}", err),
         },
+        Ok(o) => o,
     };
 
-    match take_screenshot(&ss_path) {
-        Err(e) => {
-            println!("{}", e);
-            process::exit(1);
-        }
-        Ok(()) => (), // Success
+    if let Err(err) = take_screenshot(&ss_path) {
+        println!("{}", err);
+        process::exit(1);
     }
 
     // Initialize Raylib
@@ -47,31 +44,26 @@ fn main() {
     rl.set_target_fps(60);
 
     // Load texture from temporary screenshot
-    let img = match Image::load_image(&ss_path.to_string_lossy()) {
-        Err(e) => {
-            println!(
-                "\nFailed to load temporary screenshot.\n\
-                Reason: {}",
-                e
-            );
+    let img = Image::load_image(&ss_path.to_string_lossy()).unwrap_or_else(|e| {
+        println!(
+            "\nFailed to load temporary screenshot.\n\
+            Reason: {}",
+            e
+        );
+        process::exit(1);
+    });
+
+    let mut ss_texture = rl
+        .load_texture_from_image(&rl_thread, &img)
+        .unwrap_or_else(|err| {
+            println!("Failed to create texture: {:?}", err);
             process::exit(1);
-        }
-        Ok(o) => o,
-    };
-    let mut ss_texture = match rl.load_texture_from_image(&rl_thread, &img) {
-        Err(e) => {
-            println!("Failed to create texture: {:?}", e);
-            process::exit(1);
-        }
-        Ok(o) => o,
-    };
-    match fs::remove_file(ss_path) {
-        Err(e) => {
-            println!("Failed to remove temporary screenshot file {:?}", e);
-            process::exit(1);
-        }
-        Ok(_) => (),
-    }
+        });
+
+    fs::remove_file(ss_path).unwrap_or_else(|err| {
+        println!("Failed to remove temporary screenshot file {:?}", err);
+        (); // Continue even if it fails
+    });
 
     // Set positions & offsets for image
     let original_size = I32Vector2::new(ss_texture.width, ss_texture.height);

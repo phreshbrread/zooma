@@ -47,15 +47,14 @@ impl I32Vector2 {
 }
 
 pub fn get_current_environment() -> Result<DisplayProtocol, ZoomaError> {
-    let e = match env::var("XDG_SESSION_TYPE") {
-        Ok(o) => o,
-        Err(_) => return Err(ZoomaError::MissingXdgSessionType),
+    let Ok(e) = env::var("XDG_SESSION_TYPE") else {
+        return Err(ZoomaError::MissingXdgSessionType);
     };
 
     match e.as_str() {
-        "x11" => return Ok(DisplayProtocol::X11),
-        "wayland" => return Ok(DisplayProtocol::Wayland),
-        _ => return Err(ZoomaError::InvalidXdgSessionType(e.into())),
+        "x11" => Ok(DisplayProtocol::X11),
+        "wayland" => Ok(DisplayProtocol::Wayland),
+        _ => Err(ZoomaError::InvalidXdgSessionType(e.into())),
     }
 }
 #[cfg(target_os = "windows")]
@@ -67,65 +66,56 @@ pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
 pub fn take_screenshot(ss_path: &PathBuf) -> Result<(), ZoomaError> {
     let env = get_current_environment()?;
 
-    match env {
-        DisplayProtocol::X11 => {
+    // Handle X11, otherwise, assume Wayland
+    if matches!(env, DisplayProtocol::X11) {
+        return run_screenshot_command("scrot", vec!["-Z", "0", &ss_path.to_string_lossy(), "-o"]);
+    }
+
+    let current_desktop = env::var("XDG_CURRENT_DESKTOP")
+        // map_err will simply return the specified error if the function fails
+        .map_err(|_| ZoomaError::MissingXdgCurrentDesktop)?;
+
+    match current_desktop.as_str() {
+        "KDE" => {
             return run_screenshot_command(
-                "scrot",
-                vec!["-Z", "0", &ss_path.to_string_lossy(), "-o"],
+                "spectacle",
+                vec!["-b", "-n", "-o", &ss_path.to_string_lossy()],
             );
         }
-
-        DisplayProtocol::Wayland => {
-            let current_desktop = match env::var("XDG_CURRENT_DESKTOP") {
-                Ok(o) => o,
-                Err(_) => return Err(ZoomaError::MissingXdgCurrentDesktop),
-            };
-
-            if current_desktop == "KDE" {
-                return run_screenshot_command(
-                    "spectacle",
-                    vec!["-b", "-n", "-o", &ss_path.to_string_lossy()],
-                );
-            }
-
-            if current_desktop == "GNOME" {
-                return run_screenshot_command(
-                    "flameshot",
-                    vec!["full", "-p", &ss_path.to_string_lossy()],
-                );
-            }
-
-            // For non-GNOME / KDE environments we can just use grim
-            return run_screenshot_command("grim", vec!["-l", "0", &ss_path.to_string_lossy()]);
+        "GNOME" => {
+            return run_screenshot_command(
+                "flameshot",
+                vec!["full", "-p", &ss_path.to_string_lossy()],
+            );
         }
+        _ => (),
     }
+
+    // For non-GNOME / KDE environments we can just use grim
+    return run_screenshot_command("grim", vec!["-l", "0", &ss_path.to_string_lossy()]);
 }
 
 pub fn run_screenshot_command(cmd: &str, args: Vec<&str>) -> Result<(), ZoomaError> {
-    let output = Command::new(cmd).args(args).output();
+    Command::new(cmd).args(args).output().map_err(|err| {
+        if err.kind() == ErrorKind::NotFound {
+            return ZoomaError::MissingDependency(cmd.into());
+        } else {
+            panic!("Unhandled {cmd} error: {:#?}", err.kind());
+        }
+    })?;
 
-    match output {
-        Err(e) => match e.kind() {
-            ErrorKind::NotFound => {
-                return Err(ZoomaError::MissingDependency(cmd.into()));
-            }
-            _ => panic!("Unhandled {} error: {:#?}", cmd, e.kind()),
-        },
-        Ok(_) => return Ok(()),
-    }
+    return Ok(());
 }
 
 pub fn get_config_path() -> PathBuf {
     let path = PathBuf::from(
         env::home_dir()
             .unwrap() // $HOME should always be set on Linux
-            .join(match env::var("XDG_CONFIG_HOME") {
-                Ok(o) => o,
-                Err(_) => {
-                    println!("Failed to read $XDG_CONFIG_HOME, defaulting to ~/.config");
-                    String::from(".config")
-                }
-            })
+            .join(env::var("XDG_CONFIG_HOME").unwrap_or_else(|err| {
+                println!("Failed to read $XDG_CONFIG_HOME: {}", err);
+                println!("Defaulting to ~/.config");
+                String::from(".config")
+            }))
             .join("zooma")
             .join("settings.toml"),
     );
