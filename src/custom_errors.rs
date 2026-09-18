@@ -55,7 +55,7 @@ impl Error for SettingsError {}
 impl fmt::Display for SettingsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SettingsError::Io(e) => return write!(f, "IO error: {}", e),
+            SettingsError::Io(e) => return write!(f, "{}", e),
             SettingsError::TomlDe(e) => return write!(f, "{}", e),
             SettingsError::TomlSer(e) => return write!(f, "{}", e),
         }
